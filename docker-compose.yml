@@ -1,0 +1,38 @@
+services:
+  # --- IL DATABASE (MongoDB) ---
+  mongo:
+    image: mongo:latest
+    container_name: mongo
+    ports:
+      - "27017:27017"
+    volumes:
+      - database:/data/db # Sdove salvo i dati del DB
+    networks:
+      - flights-network
+
+  # --- IL BACKEND (Node.js) ---
+  server:
+    build: ./server
+    container_name: taw-server
+    ports:
+      - "3005:3000"
+    command: node server.js
+    depends_on:
+      - mongo # Aspetta che il DB sia pronto
+    environment:
+      # Questa stringa è magica: 'mongo' è il nome del servizio sopra
+      - MONGO_URL=mongodb://mongo:27017/db_flightdb
+      - PORT=3000
+      - JWT_SECRET=${JWT_SECRET}
+    volumes:
+      # TRUCCO FONDAMENTALE: Collega la cartella del tuo PC al container
+      - ./server:/app
+      - /app/node_modules
+    networks:
+      - flights-network
+
+volumes:
+  database :
+
+networks:
+  flights-network:

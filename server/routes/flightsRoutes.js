@@ -1,0 +1,13 @@
+const express = require('express');
+const router = express.Router();
+const flightsController = require('../controllers/flightsController');
+const { checkJwt } = require('../middleware/authMiddleware');
+
+
+// ritorno aereo protetto popolo il jwt
+router.post('/',checkJwt, flightsController.createFlights);
+
+//cerco con get aerei metodo pubblico
+router.get('/', flightsController.getFlights)
+
+module.exports = router;
