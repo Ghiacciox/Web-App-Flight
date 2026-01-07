@@ -50,3 +50,21 @@ exports.createAirplane = async (req, res) => {
         });
     }
 };
+
+// DELETE: Elimina un aereo (Solo Admin)
+//problema se abbiamo voli futuri con quell'aereo
+exports.deleteAirplane = async (req, res) => {
+    try {
+        if (req.auth.role !== 'admin') {
+            return res.status(400).json({ error: true, errormessage: "Non sei un admin non puoi eliminare un aereo" });
+        }
+       const id = req.params.id;
+        const deletedAirplane = await Airplanes.findByIdAndDelete(airplaneId);
+        if (!deletedAirplane) {
+            return res.status(404).json({ error: true, errormessage: "Aereo non trovato" });
+        }
+        return res.status(200).json({ message: "Aereo eliminato con successo" });
+    } catch (err) {
+        return res.status(500).json({ error: true, errormessage: "Errore durante l'eliminazione dell'aereo", details: err.message });
+    }
+}

@@ -17,7 +17,7 @@ exports.getRoutes = async (req, res) => {
 // POST: Crea una nuova tratta (Solo Compagnie Aeree)
 exports.createRoute = async (req, res) => {
     // 1. Controllo Ruolo
-    if (req.auth.role !== 'airline') {
+    if (req.auth.role !== 'airline' && req.auth.role !== 'admin') {
         return res.status(403).json({ error: true, errormessage: "Solo le compagnie aeree possono creare rotte" });
     }
 

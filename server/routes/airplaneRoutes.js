@@ -10,4 +10,8 @@ router.post('/',checkJwt, airplaneController.createAirplane);
 //cerco con get aerei metodo pubblico
 router.get('/', airplaneController.getAirplane)
 
+// elimino aereo protetto solo admin
+//no testato
+router.delete('/:id', checkJwt, airplaneController.deleteAirplane);
+
 module.exports = router;
