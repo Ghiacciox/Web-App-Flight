@@ -25,11 +25,22 @@ services:
       - PORT=3000
       - JWT_SECRET=${JWT_SECRET}
     volumes:
-      # TRUCCO FONDAMENTALE: Collega la cartella del tuo PC al container
       - ./server:/app
       - /app/node_modules
     networks:
       - flights-network
+
+  # --- IL FRONTEND (Angular) ---
+  angular:
+      build: ./frontend
+      container_name: taw-angular
+      ports:
+        - "4200:4200"
+      volumes:
+        - ./frontend:/app       # Sincronizza la cartella mentre modifichi il codice
+        - /app/node_modules     # REGOLA D'ORO: Usa i node_modules del container, non del PC
+      networks:
+        - flights-network
 
 volumes:
   database :

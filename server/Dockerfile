@@ -1,9 +1,12 @@
 # Usa l'immagine ufficiale leggera di Node.js
-FROM node:19-buster-slim
+# cambiata da 19 perché deprecata
+# 20 è stabile e supportata a lungo termine 
+
+FROM node:20-slim 
 
 LABEL maintainer ="Andrea Giazzon"
 
-# Espone la porta 3000 (quella di Express)
+# Espone la porta 3000 per il server
 EXPOSE 3000
 
 # Crea la cartella di lavoro dentro il container
