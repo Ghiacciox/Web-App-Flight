@@ -1,1 +1,132 @@
-<p>registration works!</p>
+<div class="min-h-screen grid grid-cols-1 md:grid-cols-2">
+
+  <!-- contentitore altro come lo schermo una riga e 2 colonne-->
+  <div class="hidden md:flex bg-sky-500 items-center justify-center p-8">
+    <!-- contenuto della prima colonna, visibile solo su schermi medi e più grandi -->
+    <div class="text-center text-white">
+      <img src="cane.png" alt="Logo" class="mx-auto w-48 mb-6"/>
+      <h1 class="text-4xl font-bold mb-4">Bau Flights!</h1>
+      <p class="text-lg">Compagnia aerea per i tuoi amici a quattro zampe</p>
+    </div>
+  </div>
+
+  <!-- seconda colonna-->
+  <div class="bg-white flex items-center justify-center p-8">
+    <div class="text-center text-sky-500">
+      <h1 class="text-4xl font-bold mb-4">Crea il tuo account !</h1>
+
+      <div class="bg-gray-100 p-1 rounded-full flex relative">
+        <button [ngClass]="role === 'passenger' ? 'bg-white text-sky-500' : 'text-gray-500'" 
+          (click)="setRole('passenger')" 
+          class="w-1/2 py-2 rounded-full font-medium transition-colors duration-300">
+          Passeggero
+        </button>
+        <button [ngClass]="role === 'airline' ? 'bg-white text-sky-500' : 'text-gray-500'" 
+          (click)="setRole('airline')" 
+          class="w-1/2 py-2 rounded-full font-medium transition-colors duration-300">
+          Compagnia
+        </button>
+      </div>
+      
+      <form [formGroup]="registrationForm" (ngSubmit)="onSubmit()" class="space-y-4 mt-8">
+        <!-- collego alla variabile loginForm  che ho nel ts
+         (ngSubmit)="onSubmit()" lancia la funzuone onSubmit quando premo il bottone-->
+
+       <input 
+          id="email" 
+          type="email" 
+          formControlName="email"
+          placeholder="nome@esempio.com"
+          class="w-full  px-5 py-3  rounded-md bg-white border border-slate-300 text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-4 focus:ring-sky-100 focus:border-sky-500 transition-all " 
+        />
+
+        <input 
+          id="password" 
+          type="password" 
+          formControlName="password"
+          placeholder="******"
+          class="w-full  px-5 py-3  rounded-md bg-white border border-slate-300 text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-4 focus:ring-sky-100 focus:border-sky-500 transition-all " 
+        />
+
+        <div *ngIf="role === 'passenger'" class="space-y-4">
+          <input 
+            id="name" 
+            type="text" 
+            formControlName="name"
+            placeholder="Nome"
+            class="w-full  px-5 py-3  rounded-md bg-white border border-slate-300 text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-4 focus:ring-sky-100 focus:border-sky-500 transition-all " 
+          />
+
+          <input 
+            id="surname" 
+            type="text" 
+            formControlName="surname"
+            placeholder="Cognome"
+            class="w-full  px-5 py-3  rounded-md bg-white border border-slate-300 text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-4 focus:ring-sky-100 focus:border-sky-500 transition-all " 
+          />
+
+          <input 
+            id="birthdate" 
+            type="date" 
+            formControlName="birthdate"
+            placeholder="Data di nascita"
+            class="w-full  px-5 py-3  rounded-md bg-white border border-slate-300 text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-4 focus:ring-sky-100 focus:border-sky-500 transition-all " 
+          />
+
+          <input 
+            id="phonenumber" 
+            type="text" 
+            formControlName="phonenumber"
+            placeholder="Numero di telefono"
+            class="w-full  px-5 py-3  rounded-md bg-white border border-slate-300 text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-4 focus:ring-sky-100 focus:border-sky-500 transition-all " 
+          />
+
+          <input 
+            id="paymentAddress" 
+            type="text" 
+            formControlName="paymentAddress"
+            placeholder="Indirizzo"
+            class="w-full  px-5 py-3  rounded-md bg-white border border-slate-300 text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-4 focus:ring-sky-100 focus:border-sky-500 transition-all " 
+          />
+        </div>
+        
+      
+        <div *ngIf="role === 'airline'" class="space-y-4">
+          <input 
+            id="company" 
+            type="text" 
+            formControlName="company"
+            placeholder="Nome compagnia"
+            class="w-full  px-5 py-3  rounded-md bg-white border border-slate-300 text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-4 focus:ring-sky-100 focus:border-sky-500 transition-all "
+          />
+        </div>
+
+        <button 
+          type="submit" 
+          [disabled]="registrationForm.invalid"
+          class="w-full flex justify-center py-2 px-4 border
+           border-transparent rounded-md shadow-sm text-sm font-medium 
+           text-white bg-sky-600 hover:bg-sky-700 focus:outline-none 
+           focus:ring-2 focus:ring-offset-2 focus:ring-sky-500 disabled:bg-slate-400 disabled:cursor-not-allowed">
+          Registrati
+        </button>
+
+        <p class="mt-4 text-sm">
+           Hai già un account ?
+          <a routerLink="/login" class="text-yellow-500 hover:underline"> Accedi</a>
+        </p>
+
+      <div *ngIf="registrationForm.get('password')?.invalid && registrationForm.get('password')?.touched" class="text-red-500 text-xs mt-1">
+        La password deve essere di almeno 6 caratteri.
+      </div>
+      <div *ngIf="registrationForm.get('email')?.invalid && registrationForm.get('email')?.touched" class="text-red-500 text-xs mt-1">
+        Inserisci una email valida.
+      </div>
+
+      </form>
+    </div>
+  </div>
+ 
+</div>
+
+

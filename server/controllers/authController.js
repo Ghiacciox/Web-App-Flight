@@ -33,10 +33,12 @@ exports.register = async (req, res) => {
         return res.status(400).json({ error: true, errormessage: "Email già in uso nel db" });
     }
 
+    /*
     if(role != "passenger"){
-        // solo i passeggeri possono registrarsi
+        // solo i passeggeri possono registrarsi, eheh no
         return res.status(400).json({ error: true, errormessage: "ruolo diverso da passeggero errore nella registarzione" });
     }
+    */
 
     let newUser = new User(req.body);
     newUser.setPassword(password);

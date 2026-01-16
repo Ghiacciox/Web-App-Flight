@@ -42,7 +42,7 @@ export interface User {
 export class HttpService {
 
   private token: string = '';
-  public url = 'http://localhost:3000/api/auth'; //webserver backend
+  public url = 'http://localhost:3005/api/auth'; //webserver backend
 
   constructor( private http: HttpClient ) {
     //appena parte necessita di un client che è importato da node
@@ -118,6 +118,7 @@ export class HttpService {
 
   //ritorna un osservable
   register( user:User ): Observable<any> {
+    //angular passa già user converito in json
     const options = {
       headers: new HttpHeaders({
         'cache-control': 'no-cache',
