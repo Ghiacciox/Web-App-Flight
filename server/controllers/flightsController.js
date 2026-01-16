@@ -14,7 +14,7 @@ exports.getFlights = async (req, res) => {
     }
 };
 
-// POST: Crea Aeroporto (Solo Admin)
+// POST: Crea aereo (Solo Admin)
 exports.createFlights = async (req, res) => {
     // Verifica ruolo Admin (assumendo che req.auth sia popolato dal middleware JWT)
     try {
