@@ -51,14 +51,37 @@ export class HttpService {
     const loadedtoken = localStorage.getItem('postmessages_token');
     // il local storage è una porzione di memoria di ogni pagina noi ci salviamo il token
     //se lo troviamo non lo chiediamo al serverr :))
-
     if ( !loadedtoken || loadedtoken.length < 1 ) {
       console.log("No token found in local storage");
       this.token = ""
-    } else {
-      this.token = loadedtoken as string;
-      console.log("JWT loaded from local storage.")
+    }else {
+      // 2. Se c'è un token, controlliamo se è SCADUTO
+      if (this.isTokenExpired(loadedtoken)) {
+        console.log("Token scaduto trovato nel localStorage. Logout automatico.");
+        this.logout(); // Pulisce tutto
+      } else {
+        this.token = loadedtoken as string;
+        console.log("JWT loaded from local storage.")
+      }
     }
+  }
+
+  private isTokenExpired(token: string): boolean {
+    try {
+      const decoded = jwtDecode(token) as any;
+      const currentTime = Date.now() / 1000; 
+      // Tempo attuale in SECONDI
+      // Se la scadenza (exp) è minore del tempo attuale, è scaduto
+      return decoded.exp < currentTime;
+    } catch (error) {
+      return true;
+    }
+  }
+
+  isAuthenticated(): boolean {
+    if (!this.token) 
+      return false;
+    return !this.isTokenExpired(this.token);
   }
 
 
@@ -74,7 +97,6 @@ export class HttpService {
         'Content-Type':  'application/x-www-form-urlencoded',
       })
     };
-
 
     return this.http.get<ReceivedToken>( this.url + '/login',  options, ).pipe(
       /*

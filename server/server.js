@@ -27,6 +27,9 @@ const passportHTTP = require("passport-http");
 //modelli
 const user = require("./models/Users");
 
+//seed
+const seed = require("./seed");
+
 const PORT = process.env.PORT || 3000;
 const app = express();
 
@@ -137,21 +140,24 @@ mongoose.connect(mongoUrl)
       
       if (!existingAdmin) {
         console.log("Admin non trovato, creazione di un admin di default");
-        
-        let adminUser = new user({
+        // Assumo che setPassword sia sincrono (es. passport-local-mongoose).
+        // Se fosse asincrono, aggiungi 'await' davanti.
+        // Eseguo il seeding del database
+        await seed();
+        console.log("Seeding del database completato");
+
+         let adminUser = new user({
           email: "admin@bau-flights.it",
           role: "admin"
         });
 
-        // Assumo che setPassword sia sincrono (es. passport-local-mongoose).
-        // Se fosse asincrono, aggiungi 'await' davanti.
-        adminUser.setPassword("AdminPassword123!");
+         adminUser.setPassword("AdminPassword123!");
         
         await adminUser.save();
         console.log("Admin creato con successo");
       }
     } catch (err) {
-      console.error("Errore controllo admin:", err);
+      console.error("Errore controllo admin o seeding:", err);
     }
 
     // AVVIO SERVER

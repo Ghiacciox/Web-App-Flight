@@ -1,20 +1,20 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { Router } from '@angular/router';
 import { HttpService } from '../../services/http.service';
+import { Router, RouterModule } from '@angular/router';
 
 @Component({
   selector: 'app-registration',
    standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, RouterModule],
   providers: [HttpService], 
   templateUrl: './registration.html',
   styleUrl: './registration.css',
 })
 
 
-export class Registration {
+export class RegistrationComponent {
 
   role: string = 'passenger'; // Valore predefinito
   registrationForm: FormGroup;
@@ -106,7 +106,7 @@ utenteeee
             return;
           }
           console.log('Registrazione successful:', response.token);
-          this.router.navigate(['/dashboard']);
+          this.router.navigate(['/home']);
         },
         error: (error) => {
           console.error('Registrazione failed:', error);

@@ -1,0 +1,152 @@
+<div class="min-h-screen flex flex-col bg-gray-100">
+    
+    <nav class="bg-sky-600 text-white shadow-lg sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <div class="flex-shrink-0 font-bold text-2xl tracking-wider cursor-pointer" routerLink="/home">
+                    Bau<span class="text-yellow-500">Flights</span>
+                </div>
+
+                <div class="flex items-center space-x-6 font-medium">
+                    <ng-container *ngIf="isLoggedIn">
+                        <a routerLink="/profile" class="hover:text-yellow-500 transition-colors cursor-pointer">Profilo</a>
+                    </ng-container>
+
+                    <ng-container *ngIf="!isLoggedIn">
+                        <a routerLink="/login" class="hover:text-yellow-500 transition-colors cursor-pointer">Accedi</a>
+                    </ng-container>
+
+                    <a routerLink="/cart" class="hover:text-yellow-500 transition-colors cursor-pointer">Carrello</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <pre class="bg-gray-800 text-white p-4 text-xs">
+        DEBUG DATA: {{ Results | json }}
+    </pre>
+     
+    <div class="max-w-7xl mx-auto w-full p-4 md:p-8">
+        
+        <h2 class="text-2xl font-bold text-gray-800 mb-6">Risultati: {{ Results.length }} soluzioni trovate</h2>
+
+        <div *ngFor="let res of Results" class="mb-6">
+
+            <div *ngIf="res.type === 'direct'" class="bg-white shadow-md rounded-lg overflow-hidden border-l-4 border-green-500">
+                <div class="p-6">
+                    <div class="flex justify-between items-center mb-4">
+                        <span class="bg-green-100 text-green-800 text-xs font-bold px-2.5 py-0.5 rounded uppercase">Diretto</span>
+                        <span class="text-gray-500 text-sm font-bold">{{ res.flights[0].flightNumber }}</span>
+                    </div>
+
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-6 items-center">
+                        
+                        <div>
+                            <label class="block text-xs font-bold text-gray-400 uppercase">Partenza</label>
+                            <div class="text-lg font-bold text-gray-800">{{ res.flights[0].route?.departureAirport?.city }}</div>
+                            <div class="text-sm text-gray-500">{{ res.flights[0].departureTime | date:'dd/MM HH:mm' }}</div>
+                            <div class="text-xs text-sky-600 font-mono">{{ res.flights[0].route?.departureAirport?.code }}</div>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-bold text-gray-400 uppercase">Arrivo</label>
+                            <div class="text-lg font-bold text-gray-800">{{ res.flights[0].route?.arrivalAirport?.city }}</div>
+                            <div class="text-sm text-gray-500">{{ res.flights[0].arrivalTime | date:'dd/MM HH:mm' }}</div>
+                            <div class="text-xs text-sky-600 font-mono">{{ res.flights[0].route?.arrivalAirport?.code }}</div>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-bold text-gray-400 uppercase">Compagnia</label>
+                            <div class="text-md font-semibold text-gray-700">
+                                {{ res.flights[0].company?.company || 'Airline' }}
+                            </div>
+                        </div>
+
+                        <div class="text-right flex flex-col items-end">
+                            <label class="block text-xs font-bold text-gray-400 uppercase">Prezzo</label>
+                            <div class="text-2xl font-bold text-sky-600 mb-2">
+                                {{ res.flights[0].prices?.economy | currency:'EUR' }}
+                            </div>
+                            <button class="bg-sky-600 hover:bg-sky-700 text-white font-bold py-2 px-6 rounded shadow transition-colors">
+                                Prenota
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
+            <div *ngIf="res.type === 'stopover'" class="bg-white shadow-md rounded-lg overflow-hidden border-l-4 border-yellow-500">
+                
+                <div class="bg-gray-50 px-6 py-3 border-b border-gray-100 flex justify-between items-center">
+                    <div class="flex items-center gap-2">
+                        <span class="bg-yellow-100 text-yellow-800 text-xs font-bold px-2.5 py-0.5 rounded uppercase">1 Scalo</span>
+                        <span class="text-xs text-gray-500">
+                            Da {{ res.flights[0].route?.departureAirport?.city }} a {{ res.flights[1].route?.arrivalAirport?.city }}
+                        </span>
+                    </div>
+                    <div class="text-lg font-bold text-sky-700">
+                        Totale: {{ getTotalPrice(res.flights) | currency:'EUR' }}
+                    </div>
+                </div>
+
+                <div class="p-6">
+                    <div *ngFor="let flight of res.flights; let i = index; let last = last" 
+                         [ngClass]="{'mb-4 border-b pb-4 border-dashed border-gray-300': !last}">
+                        
+                        <div class="flex flex-col md:flex-row items-center justify-between gap-4">
+                            
+                            <div class="flex items-center gap-3 w-full md:w-1/4">
+                                <div class="bg-gray-200 text-gray-600 text-xs font-bold px-2 py-1 rounded">
+                                    Volo {{ i + 1 }}
+                                </div>
+                                <div>
+                                    <div class="font-bold text-gray-700">{{ flight.flightNumber }}</div>
+                                    <div class="text-xs text-gray-500">{{ flight.company?.company }}</div>
+                                </div>
+                            </div>
+
+                            <div class="flex-grow flex items-center justify-center gap-8 text-center w-full md:w-2/4">
+                                <div>
+                                    <div class="font-bold text-gray-800">{{ flight.departureTime | date:'HH:mm' }}</div>
+                                    <div class="text-xs text-gray-500">{{ flight.route?.departureAirport?.city }}</div>
+                                </div>
+                                <div class="text-gray-300">➝</div>
+                                <div>
+                                    <div class="font-bold text-gray-800">{{ flight.arrivalTime | date:'HH:mm' }}</div>
+                                    <div class="text-xs text-gray-500">{{ flight.route?.arrivalAirport?.city }}</div>
+                                </div>
+                            </div>
+
+                            <div class="w-full md:w-1/4 text-right">
+                                <span class="text-sm text-gray-400">Parziale: {{ flight.prices?.economy | currency:'EUR' }}</span>
+                            </div>
+                        </div>
+
+                        <div *ngIf="!last" class="mt-2 text-center">
+                            <span class="text-xs text-yellow-600 font-bold bg-yellow-50 px-3 py-1 rounded-full">
+                                ⚠ Cambio aereo a {{ flight.route?.arrivalAirport?.city }}
+                            </span>
+                        </div>
+
+                    </div>
+
+                    <div class="mt-4 text-right">
+                        <button class="bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-2 px-6 rounded shadow transition-colors">
+                            Prenota Soluzione Combinata
+                        </button>
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+
+        <div *ngIf="Results.length === 0" class="text-center py-10">
+            <p class="text-gray-500 text-xl">Nessun volo trovato.</p>
+        </div>
+
+    </div>
+</div>
+
+

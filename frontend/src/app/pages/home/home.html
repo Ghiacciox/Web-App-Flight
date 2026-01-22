@@ -1,1 +1,79 @@
-<p>home works!</p>
+<div class="min-h-screen flex flex-col">
+   <nav class="bg-sky-600 text-white shadow-lg sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <div class="flex-shrink-0 font-bold text-2xl tracking-widder cursor-pointer" routerLink="/home">
+                    Bau<span class="text-yellow-500">Flights</span>
+                </div>
+
+                <div class="flex items-center space-x-6">
+                    
+                    <ng-container *ngIf="isLoggedIn">
+                        <a routerLink="/login" class="hover:text-yellow-500 transition-colors"> Profilo</a>
+                    </ng-container>
+
+                    <ng-container *ngIf="!isLoggedIn">
+                        <a routerLink="/login" class="over:text-yellow-500 transition-colors"> Accedi</a>
+                    </ng-container>
+
+                    <a routerLink="/cart" class="over:text-yellow-500 transition-colors"> Carrello</a>
+                
+                </div> </div>
+        </div>
+    </nav>
+
+    <!--fine della navbar -->
+    
+    <div class="flex grow hidden md:flex bg-sky-400 items-end justify-center p-8">
+       <div class="bg-white shadow-lg rounded-md p-6 order-t-4 border-yellow-500">   
+            <form [formGroup]="searchForm" (ngSubmit)="onSubmit()" class="flex flex-col md:flex-row gap-6">
+                
+                <div class="grid grid-cols-3 gap-6">
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500 uppercase mb-1 ml-1">Città di partenza</label>
+                        <input id="from" type="text" formControlName="from" placeholder="Es. Milano" 
+                            class="w-full px-4 py-3 rounded-md bg-gray-50 border border-slate-300 focus:bg-white focus:ring-2 focus:ring-sky-500 focus:outline-none transition-all" />
+                    </div>
+                    
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500 uppercase mb-1 ml-1">Città di destinazione</label>
+                        <input id="to" type="text" formControlName="to" placeholder="Es. New York" 
+                            class="w-full px-4 py-3 rounded-md bg-gray-50 border border-slate-300 focus:bg-white focus:ring-2 focus:ring-sky-500 focus:outline-none transition-all" />
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500 uppercase mb-1 ml-1">Data di partenza</label>
+                        <input id="initialDate" type="date" formControlName="initialDate" 
+                            class="w-full px-4 py-3 rounded-md bg-gray-50 border border-slate-300 focus:bg-white focus:ring-2 focus:ring-sky-500 focus:outline-none transition-all" />
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500 uppercase mb-1 ml-1">Compagnia (Opzionale)</label>
+                        <input id="company" type="text" formControlName="company" placeholder="Es. Alitalia" 
+                            class="w-full px-4 py-3 rounded-md bg-gray-50 border border-slate-300 focus:bg-white focus:ring-2 focus:ring-sky-500 focus:outline-none transition-all" />
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500 uppercase mb-1 ml-1">Numero volo (Opzionale)</label>      
+                        <input id="flightNumber" type="text" formControlName="flightNumber" placeholder="Es. AZ203" 
+                            class="w-full px-4 py-3 rounded-md bg-gray-50 border border-slate-300 focus:bg-white focus:ring-2 focus:ring-sky-500 focus:outline-none transition-all" />
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500 uppercase mb-1 ml-1">Data di arrivo (Opzionale)</label>
+                        <input id="finalDate" type="date" formControlName="finalDate" 
+                            class="w-full px-4 py-3 rounded-md bg-gray-50 border border-slate-300 focus:bg-white focus:ring-2 focus:ring-sky-500 focus:outline-none transition-all" />
+                    </div>
+                </div>
+
+                <button type="submit" [disabled]="searchForm.invalid" 
+                    class="w-auto md:w-auto md:float-right px-8 py-3 bg-sky-600 hover:bg-sky-700 text-white font-bold rounded-md shadow-md transition-all disabled:opacity-50">
+                    CERCA VOLI
+                </button>
+            </form>
+       </div>
+    </div> 
+</div>
+
+
+

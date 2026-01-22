@@ -1,8 +1,6 @@
+require('dotenv').config();
 const mongoose = require('mongoose');
-const { v4: uuidv4 } = require('uuid'); // Se non hai uuid, puoi usare una stringa random manuale
-
-// Importa i modelli (Assicurati che i nomi dei file siano corretti!)
-const User = require('./models/Users'); 
+const User = require('./models/Users');
 const Airport = require('./models/Airports');
 const Airplane = require('./models/Airplanes');
 const Route = require('./models/Routes');
@@ -10,295 +8,140 @@ const Flight = require('./models/Flight');
 const Ticket = require('./models/Ticket');
 const Booking = require('./models/Booking');
 
-
-//.create crea un oggetto come promessa e la mette nel database
-//.flight.create({flightNumber: "AB123", departure: "2023-10-01T10:00:00Z", arrival: "2023-10-01T14:00:00Z"})
-//.all([promise1, promise2]) aspetta che tutte le promesse siano completate
- /*
-  posso anche fare
-  return new promise((resolve, reject) => {
-    //faccio qualcosa di asincrono
-    if(tutto ok){
-        resolve(result);
-    } else {
-        reject(error);
-    }
-  }
-
-  .find() mi ritorna tutti i documenti
-  .findById(id) mi ritorna il documento con quell'id
-  .findOne({flightNumber: "AB123"}) mi ritorna il primo che trova con quel flight number
-  .updateOne({flightNumber: "AB123"}, {departure: "2023-10-01T12:00:00Z"}) aggiorna il primo che trova
-  .deleteOne({flightNumber: "AB123"}) elimina il primo che trova
-
-  .skip
-  .limit 
-
-
-  .async / await
-  metto async davanti alla dichiarazione della funzione
-  e poi uso 
-  await davanti alle chiamate asincrone
-  in questo modo aspetto che finisca prima di andare avanti
-
-  posso trasormare una funzione in una promise
-  
-*/
-
-
-// Stringa di connessione
-const mongoUrl = process.env.MONGO_URL || 'mongodb://localhost:27017/flightdb';
-
-const seedData = async () => {
+const seedDB = async () => {
     try {
-        await mongoose.connect(mongoUrl);
-        console.log('🌱 Connesso al DB per il seeding...');
+        console.log('🔄 Avvio pulizia e popolamento DB...');
 
-        // ====================================================
-        // 1. PULIZIA TOTALE
-        // ====================================================
-        console.log('🧹 Pulizia database...');
+        // 1. PULIZIA DATABASE
         await Promise.all([
-            User.deleteMany({}),
-            Airport.deleteMany({}),
-            Airplane.deleteMany({}),
-            Route.deleteMany({}),
-            Flight.deleteMany({}),
+            Booking.deleteMany({}),
             Ticket.deleteMany({}),
-            Booking.deleteMany({})
+            Flight.deleteMany({}),
+            Route.deleteMany({}),
+            Airplane.deleteMany({}),
+            Airport.deleteMany({}),
+            User.deleteMany({})
         ]);
 
-        // ====================================================
-        // 2. CREAZIONE UTENTI
-        // ====================================================
-        console.log('👤 Creazione Utenti...');
+        // 2. CREAZIONE UTENTI (Admin, Passeggero, 2 Compagnie Aeree)
+        const admin = new User({ email: "admin@bauflights.com", role: "admin" });
+        admin.setPassword("123456");
+
+        const passenger = new User({ 
+            email: "mario.rossi@email.com", role: "passenger", 
+            name: "Mario", surname: "Rossi", birthdate: new Date("1990-05-20"), 
+            phonenumber: "+393331234567", paymentAddress: "Via Roma 1, Milano" 
+        });
+        passenger.setPassword("123456");
         
-        const admin = await User.create({
-            email: "admin@taw.com",
-            password: "admin", 
-            role: "admin"
-        });
+        const airlineBau = new User({ email: "info@bauairlines.com", role: "airline", company: "Bau Airlines" });
+        airlineBau.setPassword("123456");
 
-        const airlineLufthansa = await User.create({
-            email: "info@lufthansa.com",
-            password: "123",
-            role: "airline",
-            company: "Lufthansa"
-        });
+        const airlineSky = new User({ email: "info@skywings.com", role: "airline", company: "Sky Wings" });
+        airlineSky.setPassword("123456");
 
-        const passengerMario = await User.create({
-            email: "mario@gmail.com",
-            password: "123",
-            role: "passenger",
-            name: "Mario",           
-            surname: "Rossi",
-            birthdate: new Date("1990-01-01"),
-            phonenumber: "333111111",         
-            paymentAddress: "Via Roma 1"
-        });
+        await Promise.all([admin.save(), passenger.save(), airlineBau.save(), airlineSky.save()]);
 
-        const passengerLuigi = await User.create({
-            email: "luigi@gmail.com",
-            password: "123",
-            role: "passenger",
-            name: "Luigi",           
-            surname: "Verdi",
-            birthdate: new Date("1992-05-05"),
-            phonenumber: "333222222",         
-            paymentAddress: "Corso Italia 20"
-        });
+        // 3. AEROPORTI
+        const airportsData = [
+            { code: "LIN", name: "Milano Linate", city: "Milano", country: "Italia" },
+            { code: "FCO", name: "Roma Fiumicino", city: "Roma", country: "Italia" },
+            { code: "JFK", name: "John F. Kennedy", city: "New York", country: "USA" },
+            { code: "CDG", name: "Charles de Gaulle", city: "Parigi", country: "Francia" }
+        ];
+        const airports = await Airport.insertMany(airportsData);
 
-        // ====================================================
-        // 3. CREAZIONE AEROPORTI
-        // ====================================================
-        console.log('🌍 Creazione Aeroporti...');
-        const vce = await Airport.create({ code: "VCE", city: "Venezia", name: "Marco Polo", country: "Italia" });
-        const jfk = await Airport.create({ code: "JFK", city: "New York", name: "J.F. Kennedy", country: "USA" });
-        const lhr = await Airport.create({ code: "LHR", city: "Londra", name: "Heathrow", country: "UK" });
+        // Helper per prendere gli ID velocemente
+        const getAirportId = (code) => airports.find(a => a.code === code)._id;
 
-        // ====================================================
-        // 4. CREAZIONE AEREI
-        // ====================================================
-        console.log('✈️ Creazione Aerei...');
-        
-        // Aereo Grande (Boeing)
-        const boeing737 = await Airplane.create({
+        // 4. AEREI
+        const airplane = new Airplane({
             airplaneModel: "Boeing 737-800",
             capacity: {
-                economy: { rows: 20, seatsPerRow: 6, seatLetters: "ABCDEF" }, // 120 posti
-                business: { rows: 5, seatsPerRow: 4, seatLetters: "ACDF" },   // 20 posti
-                firstclass: { rows: 0, seatsPerRow: 0, seatLetters: "" }      // 0 posti
+                economy: { rows: 20, seatsPerRow: 6, seatLetters: "ABCDEF" },
+                business: { rows: 5, seatsPerRow: 4, seatLetters: "ACDF" },
+                firstclass: { rows: 0, seatsPerRow: 0, seatLetters: "" }
             }
         });
+        await airplane.save();
 
-        // Aereo Piccolo (Private Jet)
-        const privateJet = await Airplane.create({
-            airplaneModel: "Learjet 75",
-            capacity: {
-                economy: { rows: 0, seatsPerRow: 0, seatLetters: "" },
-                business: { rows: 0, seatsPerRow: 0, seatLetters: "" },
-                firstclass: { rows: 4, seatsPerRow: 2, seatLetters: "AD" } // Solo 8 posti
-            }
-        });
-
-        // ====================================================
-        // 5. CREAZIONE ROTTE
-        // ====================================================
-        console.log('📍 Creazione Rotte...');
+        // 5. ROTTE
+        // Rotte Bau Airlines
+        const routeLinFco = await Route.create({ airlineId: airlineBau._id, departureAirport: getAirportId("LIN"), arrivalAirport: getAirportId("FCO") });
+        const routeFcoJfk = await Route.create({ airlineId: airlineBau._id, departureAirport: getAirportId("FCO"), arrivalAirport: getAirportId("JFK") });
         
-        const routeVceJfk = await Route.create({
-            airlineId: airlineLufthansa._id,
-            departureAirport: vce._id,
-            arrivalAirport: jfk._id,
-        });
+        // Rotte Sky Wings (Concorrenza)
+        const routeLinCdg = await Route.create({ airlineId: airlineSky._id, departureAirport: getAirportId("LIN"), arrivalAirport: getAirportId("CDG") });
+        const routeCdgJfk = await Route.create({ airlineId: airlineSky._id, departureAirport: getAirportId("CDG"), arrivalAirport: getAirportId("JFK") });
 
-        const routeJfkVce = await Route.create({
-            airlineId: airlineLufthansa._id,
-            departureAirport: jfk._id,
-            arrivalAirport: vce._id,
-        });
+        // 6. VOLI (Date dinamiche: Domani e Dopodomani)
+        const today = new Date();
+        
+        // Date helpers
+        const getTomorrowTime = (hour, minute) => {
+            const d = new Date(today); d.setDate(d.getDate() + 1); d.setHours(hour, minute, 0, 0); return d;
+        };
+        const getDayAfterTomorrowTime = (hour, minute) => {
+            const d = new Date(today); d.setDate(d.getDate() + 2); d.setHours(hour, minute, 0, 0); return d;
+        };
 
-        // ====================================================
-        // 6. CREAZIONE VOLI
-        // ====================================================
-        console.log('🛫 Creazione Voli...');
-
-        // Date dinamiche (domani)
-        const tomorrow = new Date();
-        tomorrow.setDate(tomorrow.getDate() + 1);
-        tomorrow.setHours(10, 0, 0, 0);
-
-        const arrivalTime = new Date(tomorrow);
-        arrivalTime.setHours(19, 0, 0, 0); // 9 ore dopo
-
-        // Volo 1: VCE -> JFK (Boeing)
-        const flightOutbound = await Flight.create({
-            flightNumber: "LH405",
-            company: airlineLufthansa._id,
-            route: routeVceJfk._id,
-            airplane: boeing737._id,
-            departureTime: tomorrow,
-            arrivalTime: arrivalTime,
-            prices: {
-                economy: 500,
-                business: 1200,
-                firstclass: 3000, 
-                extras: { baggage: 50, legroom: 20, priorityBoarding: 15 }
-            },
-            bookedSeats: [] // Inizialmente vuoto
-        });
-
-        // Volo 2: JFK -> VCE (Ritorno - 1 settimana dopo)
-        const nextWeek = new Date(tomorrow);
-        nextWeek.setDate(nextWeek.getDate() + 7);
-        const nextWeekArr = new Date(nextWeek);
-        nextWeekArr.setHours(19, 0, 0, 0);
-
-        const flightReturn = await Flight.create({
-            flightNumber: "LH406",
-            company: airlineLufthansa._id,
-            route: routeJfkVce._id,
-            airplane: boeing737._id,
-            departureTime: nextWeek,
-            arrivalTime: nextWeekArr,
-            prices: {
-                economy: 450,
-                business: 1100,
-                firstclass: 2900, 
-                extras: { baggage: 50, legroom: 20, priorityBoarding: 15 }
-            },
+        // --- SCENARIO 1: Volo Diretto Semplice (Milano -> Roma) ---
+        await Flight.create({
+            flightNumber: "BAU100",
+            company: airlineBau._id,
+            prices: { economy: 50, business: 150, firstclass: 300, extras: { baggage: 30, legroom: 15, priorityBoarding: 10 } },
+            departureTime: getTomorrowTime(8, 0), // Domani 08:00
+            arrivalTime: getTomorrowTime(9, 30),  // Domani 09:30
+            airplane: airplane._id,
+            route: routeLinFco._id,
             bookedSeats: []
         });
 
-        // ====================================================
-        // 7. PRENOTAZIONI E BIGLIETTI (Il test completo!)
-        // ====================================================
-        console.log('🎟️ Simulazione Prenotazione (Booking)...');
-
-        // --- SCENARIO A: Mario prenota Andata e Ritorno in Economy ---
-        
-        // Calcolo manuale prezzi (perché usiamo insertMany per bypassare hook sincroni)
-        const priceTicket1 = flightOutbound.prices.economy + flightOutbound.prices.extras.baggage; // 500 + 50
-        const priceTicket2 = flightReturn.prices.economy; // 450 (niente bagaglio al ritorno)
-
-        // 1. Creiamo i Ticket Objects
-        const ticketsMarioData = [
-            {
-                user: passengerMario._id,
-                flight: flightOutbound._id,
-                seat: "12A",
-                class: "economy",
-                extras: { baggage: true, legroom: false, priorityBoarding: false },
-                price: priceTicket1
-            },
-            {
-                user: passengerMario._id,
-                flight: flightReturn._id,
-                seat: "12A",
-                class: "economy",
-                extras: { baggage: false, legroom: false, priorityBoarding: false },
-                price: priceTicket2
-            }
-        ];
-
-        // 2. Salviamo i Ticket nel DB
-        // Nota: insertMany è più veloce e spesso bypassa i hook 'save' problematici se configurato
-        const createdTicketsMario = await Ticket.insertMany(ticketsMarioData);
-
-        // 3. Creiamo la Booking contenitore
-        await Booking.create({
-            user: passengerMario._id,
-            tickets: createdTicketsMario.map(t => t._id), // Array di ID
-            totalPrice: priceTicket1 + priceTicket2,
-            code: "MARIO001", // Codice prenotazione
-            status: "confirmed"
+        // --- SCENARIO 2: Creazione Scalo (Milano -> Roma -> New York) ---
+        // Il volo BAU100 (sopra) arriva a Roma alle 09:30.
+        // Creiamo un volo che parte da Roma per NY alle 13:00 (3.5 ore dopo -> SCALO VALIDO)
+        await Flight.create({
+            flightNumber: "BAU200",
+            company: airlineBau._id,
+            prices: { economy: 400, business: 900, firstclass: 1500, extras: { baggage: 50, legroom: 20, priorityBoarding: 20 } },
+            departureTime: getTomorrowTime(13, 0), // Domani 13:00
+            arrivalTime: getTomorrowTime(22, 0),   // Domani 22:00
+            airplane: airplane._id,
+            route: routeFcoJfk._id,
+            bookedSeats: []
         });
 
-        // 4. Aggiorniamo i posti occupati nei voli (Cruciale!)
-        await Flight.findByIdAndUpdate(flightOutbound._id, { $push: { bookedSeats: "12A" } });
-        await Flight.findByIdAndUpdate(flightReturn._id, { $push: { bookedSeats: "12A" } });
-
-
-        // --- SCENARIO B: Luigi prenota solo Andata in Business ---
-        
-        const priceTicketLuigi = flightOutbound.prices.business + flightOutbound.prices.extras.priorityBoarding; // 1200 + 15
-
-        const ticketLuigiData = [{
-            user: passengerLuigi._id,
-            flight: flightOutbound._id,
-            seat: "2A", // Business class seat
-            class: "business",
-            extras: { baggage: false, legroom: false, priorityBoarding: true },
-            price: priceTicketLuigi
-        }];
-
-        const createdTicketLuigi = await Ticket.insertMany(ticketLuigiData);
-
-        await Booking.create({
-            user: passengerLuigi._id,
-            tickets: createdTicketLuigi.map(t => t._id),
-            totalPrice: priceTicketLuigi,
-            code: "LUIGI999",
-            status: "confirmed"
+        // --- SCENARIO 3: Concorrenza SkyWings (Milano -> Parigi) ---
+        await Flight.create({
+            flightNumber: "SKY555",
+            company: airlineSky._id,
+            prices: { economy: 60, business: 180, firstclass: 0, extras: { baggage: 25, legroom: 10, priorityBoarding: 10 } },
+            departureTime: getTomorrowTime(10, 0),
+            arrivalTime: getTomorrowTime(11, 30),
+            airplane: airplane._id,
+            route: routeLinCdg._id,
+            bookedSeats: []
         });
 
-        // Aggiorna posto volo
-        await Flight.findByIdAndUpdate(flightOutbound._id, { $push: { bookedSeats: "2A" } });
+        // --- SCENARIO 4: Volo per il giorno dopo (Test date range) ---
+        await Flight.create({
+            flightNumber: "BAU102",
+            company: airlineBau._id,
+            prices: { economy: 45, business: 140, firstclass: 280, extras: { baggage: 30, legroom: 15, priorityBoarding: 10 } },
+            departureTime: getDayAfterTomorrowTime(8, 0),
+            arrivalTime: getDayAfterTomorrowTime(9, 30),
+            airplane: airplane._id,
+            route: routeLinFco._id,
+            bookedSeats: []
+        });
 
-
-        console.log('✅ SEEDING COMPLETATO CON SUCCESSO!');
-        console.log('📊 Dati generati:');
-        console.log(`   - Utenti: 4`);
-        console.log(`   - Aerei: 2`);
-        console.log(`   - Voli: 2`);
-        console.log(`   - Prenotazioni: 2 (Mario A/R, Luigi Solo Andata)`);
-        
-        process.exit(0);
+        console.log('✅ DATABASE POPOLATO! Ecco i dati per i test:');
+        console.log(`   - Data di test (Domani): ${getTomorrowTime(0,0).toLocaleDateString()}`);
+        console.log('   - Utenti: admin@bauflights.com, info@bauairlines.com, info@skywings.com (psw: 123456)');
 
     } catch (error) {
-        console.error('❌ ERRORE DURANTE IL SEEDING:', error);
-        process.exit(1);
+        console.error('❌ Errore seeding:', error);
     }
 };
 
-seedData();
+module.exports = seedDB;

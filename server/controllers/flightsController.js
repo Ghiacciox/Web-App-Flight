@@ -4,11 +4,10 @@ const helper = require('./helperController'); // CORRETTO (nota il ./ invece di 
 // GET: Lista di tutti gli aerei (Pubblico)
 exports.getFlights = async (req, res) => {
     try {
-        const { flightNumber, route, initialDate , finalDate , company} = req.query; 
-        const result = await helper.findFlightsHelper(flightNumber, route, initialDate , finalDate , company);
-        
+        const { flightNumber, from, to, initialDate , finalDate , company} = req.query; 
+        const result = await helper.findFlightsHelper(flightNumber, from, to, initialDate , finalDate , company);
+        console.log("Risultato ricerca voli debugg:", result);
         return res.status(200).json({ message: "risultato ricerca voli!", result});
-
     }catch (err) {
         res.status(500).json({ error: true, errormessage: "Errore recupero voli" });
     }

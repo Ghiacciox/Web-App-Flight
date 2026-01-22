@@ -37,7 +37,7 @@ export class LoginComponent {
             return;
           }
           console.log('Login successful:', response.token);
-          this.router.navigate(['/dashboard']);
+          this.router.navigate(['/home']);
         },
         error: (error) => {
           console.error('Login failed:', error);

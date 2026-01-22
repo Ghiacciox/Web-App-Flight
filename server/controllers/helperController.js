@@ -2,30 +2,50 @@ const Route = require('../models/Routes');
 const Airport = require('../models/Airports');
 const Flight = require('../models/Flight'); 
 const Ticket = require('../models/Ticket');
+const User = require('../models/Users'); 
+
+
+const resolveAirportId = async (searchString) => {
+    if (!searchString) return null;
+    // Cerca per Codice (LIN)
+    let airport = await Airport.findOne({ code: searchString.toUpperCase() });
+
+    //cerca per Nome (Linate)
+    if (!airport) {
+        airport = await Airport.findOne({ name: { $regex: searchString, $options: 'i' } });
+    }
+    //cerca per Città (Milano)
+    if (!airport) {
+        airport = await Airport.findOne({ city: { $regex: searchString, $options: 'i' } });
+    }
+    
+    return airport ? airport._id : null;
+    //ritorna id o null
+};
+
 
 // Helper per trovare rotte in base a codici aeroporti
 const findRoutesHelper = async (from, to) => {
     try{
          let filter = {};   
          if(from !=null && from !== undefined) {
-            const departureAirport= await Airport.findOne({ code: from.toUpperCase() });
+            let departureAirport= await resolveAirportId(from);
             if(!departureAirport){
                  return [];
             }
-            filter.departureAirport = departureAirport._id;
+            filter.departureAirport = departureAirport;
         }
 
          if(to !=null && to !== undefined) {
-            const arrivalAirport= await Airport.findOne({ code: to.toUpperCase() });
+            let arrivalAirport= await resolveAirportId(to);  
             if(!arrivalAirport){
                  return [];
-            }
-            filter.arrivalAirport = arrivalAirport._id;
+            }   
+            filter.arrivalAirport = arrivalAirport;
         }
         const routes = await Route.find(filter)
             .populate('departureAirport')
             .populate('arrivalAirport');
-        
             return routes;
     }catch (err) {
         console.log("Errore helper:", err);
@@ -42,12 +62,17 @@ const findDirectFlightsHelper = async (flightNumber, from, to, initialDate , fin
         if(flightNumber){
            filter.flightNumber = { $regex: flightNumber, $options: 'i' };
         }
-        if(company){
-            filter.company = { $regex: company, $options: 'i' };
-        }
 
-        if(from && to){
-            const routesList = await Route.find({departureAirport: from, arrivalAirport: to});
+        if (company) {
+            const airlineUser = await User.findOne({ role: 'airline', company: { $regex: company, $options: 'i' } });
+            if (airlineUser) filter.company = airlineUser._id;
+            else return [];
+        }
+        
+        if (from || to) {
+            const routesList = await findRoutesHelper(from, to);
+            if (routesList.length === 0) 
+                return [];
             filter.route = { $in: routesList.map(r => r._id) };
         }
 
@@ -97,19 +122,23 @@ const findScaleFlightsHelper = async ( from, to, initialDate , finalDate , compa
     try {
         let filter = {};
         //preparo un oggetto di filtro per la query
-        if(flightNumber){
-           filter.flightNumber = { $regex: flightNumber, $options: 'i' };
-        }
-        if(company){
-            filter.company = { $regex: company, $options: 'i' };
+
+       if (company) {
+            const airlineUser = await User.findOne({ role: 'airline', company: { $regex: company, $options: 'i' } });
+            if (airlineUser) filter.company = airlineUser._id;
+            else return [];
         }
 
-        if(from){
-            const routesList =  await Route.find({departureAirport: from});
-            //mi ritorna array di rotte
-            //devo per forza usare in perchè potrebbe esserci più di una rotta con lo stesso aeroporto di partenza
-            filter.route = { $in: routesList.map(r => r._id) };
-        }
+        const fromId = await resolveAirportId(from);
+        const toId = await resolveAirportId(to);
+        if (!fromId || !toId) 
+            return [];
+
+        const originRoute = await Route.find({ departureAirport: fromId });
+        if (originRoute.length === 0)
+             return [];
+        
+        filter.route = { $in: originRoute.map(r => r._id) };
 
         if(initialDate && finalDate){
             filter.departureTime = { 
@@ -135,11 +164,17 @@ const findScaleFlightsHelper = async ( from, to, initialDate , finalDate , compa
         const result_to = [];
         for(let r of result_from){
             let secondFilter = {};
-            if(company){
-                secondFilter.company = { $regex: company, $options: 'i' };
-            }
-            //cerco le rotte che partono dall'aeroporto di arrivo del primo volo
-            const secondRoute =  await Route.find({departureAirport: r.route.arrivalAirport, arrivalAirport: to});
+            // Correzione: usa secondFilter invece di filter per la compagnia
+            
+            if (filter.company) secondFilter.company = filter.company;
+                    
+            // Correzione: usa gli ObjectId invece delle stringhe
+            const secondRoute = await Route.find({
+
+                departureAirport: r.route.arrivalAirport._id,
+                arrivalAirport: toId
+            });
+            
             if(secondRoute.length==0)
                 continue;   
             // se non trovo nulla continuo 
@@ -150,10 +185,9 @@ const findScaleFlightsHelper = async ( from, to, initialDate , finalDate , compa
             secondFilter.departureTime = { 
                 $gte: new Date(r.arrivalTime.getTime() + 2 * 60 * 60 * 1000) 
             }; //almeno 2 ore di scalo
-            if (finalDate) {
-                secondFilter.departureTime.$lte = new Date(finalDate);
-            }
 
+
+            //metto anche data di ritorno
             const scalo = await Flight.find(secondFilter)
                 .populate('airplane')
                 .populate({
@@ -164,10 +198,10 @@ const findScaleFlightsHelper = async ( from, to, initialDate , finalDate , compa
 
             if(scalo.length>0){
                 for(let s of scalo){
-                    result_to.push(result_to.push({
+                    result_to.push({
                         type: 'stopover', // Utile per il frontend
                         flights: [r, s]   // Metto i due oggetti volo in un array pulito
-                    }));
+                    });
             }
         }
     }
