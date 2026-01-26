@@ -70,7 +70,7 @@ export interface Result {
 //restituito dal server
 export interface ServerResponse {
   message: string;
-  result: Result[];
+  result: any[];
 }
 
 /*

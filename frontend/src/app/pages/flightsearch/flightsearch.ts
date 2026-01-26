@@ -4,6 +4,7 @@ import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router, RouterModule, ActivatedRoute} from '@angular/router';
 import { HttpService } from '../../services/http.service';
+import { BehaviorSubject } from 'rxjs';
 
 
 @Component({
@@ -26,16 +27,8 @@ export interface ServerResponse {
 
 
 export class FlightsearchComponent implements OnInit {
- 
-  //array con i risultati 
-  
-  /*
-  export interface Results {
-    type: 'direct' | 'stopover';
-    flights: Flight[];
-  }*/ 
 
-  Results : any[] = [];
+  Results$ = new BehaviorSubject<any[]>([]);
   //searchForm: FormGroup;
   //array di voli come in search services
 
@@ -58,8 +51,8 @@ export class FlightsearchComponent implements OnInit {
       this.searchService.searchFlights(flightNumber, from, to, initialDate , finalDate , company)
         .subscribe((response: ServerResponse) => {
           console.log('Search results:', response);
-          this.Results = response.result;
-          console.log('✅ Lunghezza array Results:', this.Results?.length);
+          this.Results$.next(response.result || []);
+          console.log('✅ Lunghezza array Results:', response.result?.length);
         });
     });
   }
