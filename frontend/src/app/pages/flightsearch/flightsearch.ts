@@ -5,6 +5,8 @@ import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angula
 import { Router, RouterModule, ActivatedRoute} from '@angular/router';
 import { HttpService } from '../../services/http.service';
 import { BehaviorSubject } from 'rxjs';
+import { BookingService } from '../../services/booking.service';
+import { Result } from '../../services/search.service';
 
 
 @Component({
@@ -32,7 +34,13 @@ export class FlightsearchComponent implements OnInit {
   //searchForm: FormGroup;
   //array di voli come in search services
 
-  constructor(private router: Router, private searchService: SearchService, private http: HttpService, private fb: FormBuilder, private urls: ActivatedRoute) { 
+  constructor(
+    private router: Router,
+    private searchService: SearchService,
+    private http: HttpService,
+    private fb: FormBuilder,
+    private urls: ActivatedRoute,
+    private bookingService: BookingService) { 
   }
 
   ngOnInit(): void { 
@@ -64,8 +72,12 @@ export class FlightsearchComponent implements OnInit {
   getTotalPrice(flights: any[]): number {
     if (!flights) return 0;
     return flights.reduce((acc, f) => acc + (f.prices?.economy || 0), 0);
-}
+  }
 
+  onSubmit(chosenFlight: Result) {
+    this.bookingService.setSelectedFlight(chosenFlight);
+    this.router.navigate(['/bookingCreation']);
+  }
 }
 
 

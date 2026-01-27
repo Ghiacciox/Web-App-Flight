@@ -35,12 +35,22 @@ export interface Route {
   airlineId?: string; 
 }
 
-// Struttura dell'Aereo 
+export interface Seats {
+  rows: number;
+  seatsPerRow: number;
+  seatLetters: string;
+  numberOfSeats: number;
+}
+
 export interface Airplane {
   _id: string;
   airplaneModel: string;
   totalSeats: number;
-  // puoi aggiungere capacity se ti serve visualizzare la mappa posti
+  capacity: {
+    economy: Seats;
+    business: Seats;
+    firstclass: Seats;
+  };
 }
 
 //dati nascosti dentro il nostro token

@@ -63,7 +63,7 @@ exports.getTickets = async (req, res) => {
     }
 };
 
-// POST: Crea una nuova tratta (Solo Compagnie Aeree)
+// POST: Crea biglietto (Solo passeggero)
 exports.createTicket = async (req, res) => {
     let session = null;
     try {  

@@ -95,7 +95,7 @@
                                 <div class="text-2xl font-bold text-sky-600 mb-2">
                                     {{ res.flights[0].prices?.economy | currency:'EUR' }}
                                 </div>
-                                <button class="bg-sky-600 hover:bg-sky-700 text-white font-bold py-2 px-6 rounded shadow transition-colors">
+                                <button (click)="onSubmit(res)" class="bg-sky-600 hover:bg-sky-700 text-white font-bold py-2 px-6 rounded shadow transition-colors">
                                     Prenota
                                 </button>
                             </div>
@@ -192,7 +192,7 @@
                                     {{ (res.flights[0].prices?.economy || 0) + (res.flights[1].prices?.economy || 0) | currency:'EUR' }}
                                 </div>
                                 
-                                <button class="bg-sky-600 hover:bg-sky-700 text-white font-bold py-2 px-6 rounded shadow transition-colors">
+                                <button (click)="onSubmit(res)" class="bg-sky-600 hover:bg-sky-700 text-white font-bold py-2 px-6 rounded shadow transition-colors">
                                     Prenota
                                 </button>
                             </div>
