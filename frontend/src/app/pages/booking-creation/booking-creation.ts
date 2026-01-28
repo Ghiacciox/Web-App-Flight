@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { Flight, SearchService, Seats } from '../../services/search.service';
+import { bookedSeats, Flight, SearchService, Seats } from '../../services/search.service';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router, RouterModule, ActivatedRoute} from '@angular/router';
@@ -19,20 +19,29 @@ export class BookingCreationComponent implements OnInit {
   firstFlight: Flight | null = null;
   secondFlight: Flight | null = null;
 
-  // FIX: Array pubblico per il ciclo *ngFor nell'HTML
+
   public availableClasses = ['economy', 'business', 'firstclass'];
 
   selectedClass: string = 'economy';
 
+  /*
+  export interface Seats {
+  rows: number;
+  seatsPerRow: number;
+  seatLetters: string;
+  numberOfSeats: number;
+}
+  */
+
   seatsEconomyFirst: Seats = {} as Seats;
   seatsBusinessFirst: Seats = {} as Seats;
   seatsFirstClassFirst: Seats = {} as Seats;
-  bookedSeatsFirst: string[] = [];
+  bookedSeatsFirst: bookedSeats[] = [];
 
   seatsEconomySecond: Seats = {} as Seats;
   seatsBusinessSecond: Seats = {} as Seats;
   seatsFirstClassSecond: Seats = {} as Seats;
-  bookedSeatsSecond: string[] = [];
+  bookedSeatsSecond: bookedSeats[] = [];
 
   bookingForm!: FormGroup;
 
@@ -75,9 +84,11 @@ export class BookingCreationComponent implements OnInit {
 
     const formConfig: any = {};
 
+    //*--- FORMAZIONE FORM ---*
+    //per iol biglietto 1
     if (this.firstFlight) {
       formConfig.firstFlight = this.fb.group({
-        
+
         class: ['economy', Validators.required], 
         seat: ['', Validators.required],
         
@@ -90,14 +101,9 @@ export class BookingCreationComponent implements OnInit {
       });
     }
 
+    //per il biglietto 2
     if (this.secondFlight) {
       formConfig.secondFlight = this.fb.group({
-        flightNumber: [this.secondFlight.flightNumber],
-        from: [this.secondFlight.route.departureAirport],
-        to: [this.secondFlight.route.arrivalAirport],
-        departureTime: [this.secondFlight.departureTime],
-        arrivalTime: [this.secondFlight.arrivalTime],
-        company: [this.secondFlight.company],
 
         class: ['economy', Validators.required],
         seat: ['', Validators.required],
@@ -113,7 +119,6 @@ export class BookingCreationComponent implements OnInit {
 
 
     ///OKKKKKK
-
     this.bookingForm = this.fb.group(formConfig);
 
     this.setupPriceListeners('first');
@@ -142,10 +147,10 @@ export class BookingCreationComponent implements OnInit {
   }
 
 
+  //setta cambio classe
   public selectClass(flightClass: string, flightNumber: 'first' | 'second'): void {
     // Validazione tipo a runtime
     if (!['economy', 'business', 'firstclass'].includes(flightClass)) return;
-
     this.selectedClass = flightClass;
     const classFormPath = flightNumber === 'first' ? 'firstFlight.class' : 'secondFlight.class';
     this.bookingForm.get(classFormPath)?.setValue(flightClass);
@@ -157,21 +162,10 @@ export class BookingCreationComponent implements OnInit {
     return flight.prices[key] || 0;
   }
 
-  // FIX: Reso 'public' e accetta 'string' per compatibilità col form value
-  public getSeatsConfigForClass(flightClass: string, flightNumber: 'first' | 'second' = 'first'): Seats {
-    // Cast sicuro perché sappiamo cosa c'è nel form
-    const validClass = (['economy', 'business', 'firstclass'].includes(flightClass) ? flightClass : 'economy') as 'economy' | 'business' | 'firstclass';
-
-    const seatsMap = flightNumber === 'first' 
-      ? { economy: this.seatsEconomyFirst, business: this.seatsBusinessFirst, firstclass: this.seatsFirstClassFirst }
-      : { economy: this.seatsEconomySecond, business: this.seatsBusinessSecond, firstclass: this.seatsFirstClassSecond };
-      
-    return seatsMap[validClass] || {} as Seats;
-  }
-
   // --- LOGICA POSTI ---
 
-  public generateSeats(seatsConfig: Seats): string[] {
+  public generateSeats(flight: Flight): string[] {
+    const seatsConfig = flight.airplane?.capacity?.[this.selectedClass as 'economy' | 'business' | 'firstclass'];
     if (!seatsConfig || !seatsConfig.rows || !seatsConfig.seatLetters) {
       return [];
     }
@@ -186,27 +180,39 @@ export class BookingCreationComponent implements OnInit {
     return seats;
   }
 
-  public getSeatRows(seatsConfig: Seats): number[] {
-    if (!seatsConfig || !seatsConfig.rows) return [];
-    return Array.from({ length: seatsConfig.rows }, (_, i) => i + 1);
+  public getColumns(flight: Flight): number {
+    const seatsConfig = flight.airplane?.capacity?.[this.selectedClass as 'economy' | 'business' | 'firstclass'];
+    if (!seatsConfig || !seatsConfig.seatsPerRow) {
+      return 0;
+    }
+    return seatsConfig.seatsPerRow || 0;
   }
 
-  public getSeatLetters(seatsConfig: Seats): string[] {
-    if (!seatsConfig || !seatsConfig.seatLetters) return [];
-    return seatsConfig.seatLetters.split('');
-  }
+  public seatsGap(index: number): boolean {
+    const flight = this.firstFlight;
+    if (!flight) return false;
 
-  public isSeatAvailable(seat: string, flightNumber: 'first' | 'second' = 'first'): boolean {
+    const seatsConfig = flight.airplane?.capacity?.[this.selectedClass as 'economy' | 'business' | 'firstclass'];
+    if (!seatsConfig || !seatsConfig.seatsPerRow) {
+      return false;
+    }
+    const seatsPerRow = seatsConfig.seatsPerRow;
+    // Aggiungi uno spazio dopo la metà delle colonne
+    return (index + 1) % (seatsPerRow / 2) === 0;
+  }
+    
+
+  public isSeatAvailable(seat: string, flightNumber: 'first' | 'second'): boolean {
     const bookedSeats = flightNumber === 'first' ? this.bookedSeatsFirst : this.bookedSeatsSecond;
     return !bookedSeats.includes(seat);
   }
 
-  public isSeatSelected(seat: string, flightNumber: 'first' | 'second' = 'first'): boolean {
+  public isSeatSelected(seat: string, flightNumber: 'first' | 'second'): boolean {
     const formPath = flightNumber === 'first' ? 'firstFlight.seat' : 'secondFlight.seat';
     return this.bookingForm.get(formPath)?.value === seat;
   }
 
-  public selectSeat(seat: string, flightClass: string, flightNumber: 'first' | 'second' = 'first'): void {
+  public selectSeat(seat: string, flightClass: string, flightNumber: 'first' | 'second'): void {
     if (!this.isSeatAvailable(seat, flightNumber)) {
       return;
     }

@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 const Ticket = require('../models/Ticket');
 const Flight = require('../models/Flight');
+const { seatReleaser } = require('./helperController');
 
 exports.getTickets = async (req, res) => {
     try {
@@ -136,7 +137,9 @@ exports.deleteTicket= async (req, res) => {
             throw new Error("Posto non valido o già occupato");
         }
 
-        flightSeatToDelete.bookedSeats.pull(ticketToDelete.seat); //cancello posto
+        //flightSeatToDelete.bookedSeats.pull({ seat: ticketToDelete.seat, travelClass: ticketToDelete.flightClass }); //cancello posto
+        seatReleaser(flightSeatToDelete._id, ticketToDelete.seat, ticketToDelete.flightClass, session);
+
         await flightSeatToDelete.save({ session });
         await Ticket.findByIdAndDelete(ticketID).session(session); 
 

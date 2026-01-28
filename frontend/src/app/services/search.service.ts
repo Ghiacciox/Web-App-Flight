@@ -53,6 +53,11 @@ export interface Airplane {
   };
 }
 
+export interface bookedSeats {
+  seats: string;  
+  class: string
+}
+
 //dati nascosti dentro il nostro token
 //da capire se sono uguali al nostro
 export interface Flight {
@@ -68,7 +73,7 @@ export interface Flight {
   airplane: Airplane;
   
   company: any;        // O stringa o oggetto User popolato (dipende dal controller)
-  bookedSeats: string[]; // Array dei posti occupati es ["1A", "2B"]
+  bookedSeats: bookedSeats[]; // Array dei posti occupati es ["1A", "2B"]
 }
 
 //risultato json

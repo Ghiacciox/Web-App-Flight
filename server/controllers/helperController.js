@@ -227,6 +227,7 @@ const seatValidator = async (airplane, seat, flightClass) => {
             console.log("falso classe non esistente");
             return false;
         }
+
         const formatoValido = seat.match(/^(\d+)([A-Z]+)$/);
         if(!formatoValido){
             console.log("formato posto non valido");
@@ -242,6 +243,14 @@ const seatValidator = async (airplane, seat, flightClass) => {
             console.log("falso stai posto occupato");
             return false;
         }
+
+        const isAlreadyBooked = airplane.bookedSeats.some(booking => 
+            booking.seat === seat && booking.travelClass === flightClass
+        );
+
+        if (isAlreadyBooked) {
+            throw new Error("Posto già occupato");
+        }
         //non salvo qua per la race condition
         return true;
         
@@ -252,13 +261,13 @@ const seatValidator = async (airplane, seat, flightClass) => {
 };
 
 //SEAt VALIDATORRR
-const seatReleaser = async (airplane, seat, session) => {
+const seatReleaser = async (airplane, seat, flightClass, session) => {
     try {
         let flightSeatToDelete= await Flight.findById(airplane).session(session);
         if(!flightSeatToDelete){
             throw new Error("Volo non trovato"); 
         }
-        flightSeatToDelete.bookedSeats.pull(seat);
+        flightSeatToDelete.bookedSeats.pull({ seat: seat, travelClass: flightClass });
         await flightSeatToDelete.save({ session });
         return true;
     }catch (err) {
@@ -287,7 +296,11 @@ const createTicketHelper = async (userId, flightId, seat, flightClass, extras, s
         throw new Error("Posto non valido o già occupato");
     }
 
-    flight.bookedSeats.push(seat);
+    flight.bookedSeats.push({ 
+        seat: seat, 
+        travelClass: flightClass 
+    });
+
     await flight.save({ session });
 
     let newTicket = new Ticket({

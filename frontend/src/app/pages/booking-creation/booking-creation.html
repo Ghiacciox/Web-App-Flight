@@ -23,22 +23,225 @@
     </nav>
 
 
-    <div class="flex flex-col grow bg-sky-400 items-center justify-center p-8 space-y-10">
+    <div class="flex flex-col grow bg-sky-400 items-center justify-center p-8 space-y-10 ">
           
         <h2 class="text-2xl font-bold text-gray-800 mb-6">
            Completa la prenotazione!
         </h2>
 
-        <form [formGroup]="bookingForm" (ngSubmit)="onSubmit()" *ngIf="firstFlight && bookingForm">
-            <div class="bg-white shadow-lg border border-solid border-yellow-500 border-l-4 rounded-md p-4 mb-6" formGroupName="firstFlight">
-                <div class="flex flex-row items-center p-4 gap-4">
+        <form [formGroup]="bookingForm" (ngSubmit)="onSubmit()" *ngIf="firstFlight && bookingForm" class="w-full max-w-7xl mx-auto">
+            <div class="bg-white shadow-lg border border-solid border-yellow-500 border-l-4 rounded-md p-4 mb-6 " formGroupName="firstFlight">
+                <div class="flex items-center p-4 gap-4">
                     <span class="bg-sky-300 rounded-md w-fit text-md text-sky-600 font-bold px-2 py-0.5 uppercase">Tratta1</span>   
                     <div class="text-sky-600 text-xl font-bold py-1 rounded">
-                            Da: <span>{{ firstFlight.from }}</span> a <span>{{ firstFlight.route.arrivalAirport.city }}</span>
+                            <span>{{ firstFlight.route.departureAirport.city }}</span> ➝ <span>{{ firstFlight.route.arrivalAirport.city }}</span>
                     </div>
+                </div>
+
+                <div class="bg-sky-200 shadow-2xl border border-solid border-yellow-500 rounded-md p-4 mb-6"> 
+                    <div class="grid grid-cols-3 p-4 gap-4">
+                        <div>
+                            <label class="block text-xs font-bold text-sky-600 uppercase mb-1">compagnia aerea</label>
+                            <div class="text-lg font-bold text-black leading-none">{{ firstFlight.company.company || 'Airline' }}</div>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-sky-600  uppercase mb-1">numero di volo</label>
+                            <div class="text-lg font-bold text-black leading-none">{{ firstFlight.flightNumber }}</div>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-sky-600  uppercase mb-1">Orario</label>
+                            <div class="text-lg font-bold text-black leading-none">{{ firstFlight.departureTime | date:'HH:mm' }} - {{ firstFlight.arrivalTime | date:'HH:mm' }} </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-3 p-4 gap-4">   
+                    <button type="button" 
+                        (click)="selectClass('economy', 'first')" 
+                        [class.bg-yellow-400]="selectedClass === 'economy'"
+                        [class.ring-sky-500]="selectedClass === 'economy'"
+                        class="p-4 rounded-lg border border-gray-200 hover:border-sky-300 transition-all text-left flex justify-between items-center group block text-xs font-bold text-sky-600  uppercase mb-1" >
+                        Economy - {{ firstFlight.prices.economy | currency:'EUR' }}
+                    </button>
+                    <button type="button" 
+                        (click)="selectClass('business', 'first')" 
+                        [class.bg-yellow-400]="selectedClass === 'business'" 
+                         [class.ring-sky-500]="selectedClass === 'business'"
+                        class="p-4 rounded-lg border border-gray-200 hover:border-sky-300 transition-all text-left flex justify-between items-center group block text-xs font-bold text-sky-600  uppercase mb-1" >
+                        Business - {{ firstFlight.prices.business | currency:'EUR' }}
+                    </button>
+                    <button type="button"
+                        (click)="selectClass('firstclass', 'first')" 
+                        [class.bg-yellow-400]="selectedClass === 'firstclass'"
+                         [class.ring-sky-500]="selectedClass === 'firstclass'"
+                        class="p-4 rounded-lg border border-gray-200 hover:border-sky-300 transition-all text-left flex justify-between items-center group block text-xs font-bold text-sky-600  uppercase mb-1" >
+                        First Class - {{ firstFlight.prices.firstclass | currency:'EUR' }}
+                    </button>
+                </div>
+                
+                <div class="flex justify-center  text-color-sky-600 text-xl font-bold py-1 rounded">
+                            Seleziona le opzioni extra
+                </div>
+
+                <div formGroupName="extras">
+                    <div class="grid grid-cols-3 p-4 gap-4">   
+                        <div class="p-4 rounded-lg border border-gray-200 hover:border-sky-300 transition-all text-left flex items-center group block gap-4 text-xs font-bold text-sky-600  uppercase mb-1">
+                            <input type="checkbox" formControlName="legroom" class="w-4 h-4" (change)="calculatePrice('first')">
+                            <label class="block text-xs font-bold text-sky-600  uppercase mb-1 ">
+                                Posto extra gambe- {{ firstFlight.prices.extras.legroom | currency:'EUR'}}
+                            </label>
+                        </div>
+                        <div class="p-4 rounded-lg border border-gray-200 hover:border-sky-300 transition-all text-left flex items-center group block gap-4 text-xs font-bold text-sky-600  uppercase mb-1">
+                            <input type="checkbox" formControlName="baggage" class="w-4 h-4" (change)="calculatePrice('first')">
+                            <label class="block text-xs font-bold text-sky-600  uppercase mb-1">
+                                Bagaglio extra - {{ firstFlight.prices.extras.baggage | currency:'EUR'}}
+                            </label>
+                        </div>
+                        <div class="p-4 rounded-lg border border-gray-200 hover:border-sky-300 transition-all text-left flex items-center group block gap-4 text-xs font-bold text-sky-600  uppercase mb-1">
+                            <input type="checkbox" class="w-4 h-4" formControlName="priorityBoarding" (change)="calculatePrice('first')">
+                            <label class="block text-xs font-bold text-sky-600  uppercase mb-1">
+                                Imbarco prioritario - {{ firstFlight.prices.extras.priorityBoarding | currency:'EUR'}}
+                            </label>
+                        </div>
+                    </div>
+                 </div>
+
+                <div class="bg-sky-300 p-6 rounded-lg">
+    
+                    <ng-container *ngIf="firstFlight && generateSeats(firstFlight) as allSeats">
+                        
+                        <div class="grid gap-3 justify-center items-center" 
+                        [style.grid-template-columns]="'repeat(' + getColumns(firstFlight) + ', min-content)'">
+                            <div *ngFor="let seat of allSeats let i = index">
+                                <button type="button" 
+                                        (click)="selectSeat(seat, 'first')"
+                                        [disabled]="!isSeatAvailable(seat, 'first')"
+                                        [style.margin-right]="seatsGap(i) ? '40px' : '0'"
+                                        [ngClass]="{
+                                            'bg-yellow-400 text-white border-yellow-500 transform scale-110 shadow-lg': isSeatSelected(seat, 'first'),
+                                            'bg-red-200 text-red-400 cursor-not-allowed': !isSeatAvailable(seat, 'first'),
+                                            'bg-white text-sky-600 hover:border-sky-400 hover:bg-sky-50': isSeatAvailable(seat, 'first') && !isSeatSelected(seat, 'first')
+                                        }"
+                                        class="w-10 h-10 rounded-lg border-2 border-gray-200 transition-all duration-200 flex justify-center items-center font-bold text-sm">
+                                        {{ seat }}
+                                </button>
+                            </div>
+                        </div>
+
+                        <div *ngIf="allSeats.length === 0" class="text-white text-center">
+                            Nessuna configurazione sedili trovata.
+                        </div>
+                    </ng-container>
                 </div>
             </div>
         </form>
 
+        <form [formGroup]="bookingForm" (ngSubmit)="onSubmit()" *ngIf="secondFlight && bookingForm" class="w-full max-w-7xl mx-auto">
+            <div class="bg-white shadow-lg border border-solid border-yellow-500 border-l-4 rounded-md p-4 mb-6 " formGroupName="secondFlight">
+                <div class="flex items-center p-4 gap-4">
+                    <span class="bg-sky-300 rounded-md w-fit text-md text-sky-600 font-bold px-2 py-0.5 uppercase">Tratta2</span>   
+                    <div class="text-sky-600 text-xl font-bold py-1 rounded">
+                            <span>{{ secondFlight.route.departureAirport.city }}</span> ➝ <span>{{ secondFlight.route.arrivalAirport.city }}</span>
+                    </div>
+                </div>
+
+                <div class="bg-sky-200 shadow-2xl border border-solid border-yellow-500 rounded-md p-4 mb-6"> 
+                    <div class="grid grid-cols-3 p-4 gap-4">
+                        <div>
+                            <label class="block text-xs font-bold text-sky-600 uppercase mb-1">compagnia aerea</label>
+                            <div class="text-lg font-bold text-black leading-none">{{ secondFlight.company.company || 'Airline' }}</div>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-sky-600  uppercase mb-1">numero di volo</label>
+                            <div class="text-lg font-bold text-black leading-none">{{ secondFlight.flightNumber }}</div>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-sky-600  uppercase mb-1">Orario</label>
+                            <div class="text-lg font-bold text-black leading-none">{{ secondFlight.departureTime | date:'HH:mm' }} - {{ secondFlight.arrivalTime | date:'HH:mm' }} </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-3 p-4 gap-4">   
+                    <button type="button" 
+                        (click)="selectClass('economy', 'second')" 
+                        [class.bg-yellow-400]="selectedClass === 'economy'"
+                        [class.ring-sky-500]="selectedClass === 'economy'"
+                        class="p-4 rounded-lg border border-gray-200 hover:border-sky-300 transition-all text-left flex justify-between items-center group block text-xs font-bold text-sky-600  uppercase mb-1" >
+                        Economy - {{ secondFlight.prices.economy | currency:'EUR' }}
+                    </button>
+                    <button type="button" 
+                        (click)="selectClass('business', 'second')" 
+                        [class.bg-yellow-400]="selectedClass === 'business'" 
+                         [class.ring-sky-500]="selectedClass === 'business'"
+                        class="p-4 rounded-lg border border-gray-200 hover:border-sky-300 transition-all text-left flex justify-between items-center group block text-xs font-bold text-sky-600  uppercase mb-1" >
+                        Business - {{ secondFlight.prices.business | currency:'EUR' }}
+                    </button>
+                    <button type="button"
+                        (click)="selectClass('firstclass', 'second')" 
+                        [class.bg-yellow-400]="selectedClass === 'firstclass'"
+                         [class.ring-sky-500]="selectedClass === 'firstclass'"
+                        class="p-4 rounded-lg border border-gray-200 hover:border-sky-300 transition-all text-left flex justify-between items-center group block text-xs font-bold text-sky-600  uppercase mb-1" >
+                        First Class - {{ secondFlight.prices.firstclass | currency:'EUR' }}
+                    </button>
+                </div>
+                
+                <div class="flex justify-center  text-color-sky-600 text-xl font-bold py-1 rounded">
+                            Seleziona le opzioni extra
+                </div>
+
+                <div formGroupName="extras">
+                    <div class="grid grid-cols-3 p-4 gap-4">   
+                        <div class="p-4 rounded-lg border border-gray-200 hover:border-sky-300 transition-all text-left flex items-center group block gap-4 text-xs font-bold text-sky-600  uppercase mb-1">
+                            <input type="checkbox" formControlName="legroom" class="w-4 h-4" (change)="calculatePrice('second')">
+                            <label class="block text-xs font-bold text-sky-600  uppercase mb-1 ">
+                                Posto extra gambe- {{ secondFlight.prices.extras.legroom | currency:'EUR'}}
+                            </label>
+                        </div>
+                        <div class="p-4 rounded-lg border border-gray-200 hover:border-sky-300 transition-all text-left flex items-center group block gap-4 text-xs font-bold text-sky-600  uppercase mb-1">
+                            <input type="checkbox" formControlName="baggage" class="w-4 h-4" (change)="calculatePrice('second')">
+                            <label class="block text-xs font-bold text-sky-600  uppercase mb-1">
+                                Bagaglio extra - {{ secondFlight.prices.extras.baggage | currency:'EUR'}}
+                            </label>
+                        </div>
+                        <div class="p-4 rounded-lg border border-gray-200 hover:border-sky-300 transition-all text-left flex items-center group block gap-4 text-xs font-bold text-sky-600  uppercase mb-1">
+                            <input type="checkbox" class="w-4 h-4" formControlName="priorityBoarding" (change)="calculatePrice('second')">
+                            <label class="block text-xs font-bold text-sky-600  uppercase mb-1">
+                                Imbarco prioritario - {{ secondFlight.prices.extras.priorityBoarding | currency:'EUR'}}
+                            </label>
+                        </div>
+                    </div>
+                 </div>
+
+                <div class="bg-sky-300 p-6 rounded-lg">
+    
+                    <ng-container *ngIf="secondFlight && generateSeats(secondFlight) as allSeats">
+                        
+                        <div class="grid gap-3 justify-center items-center" 
+                        [style.grid-template-columns]="'repeat(' + getColumns(secondFlight) + ', min-content)'">
+                            <div *ngFor="let seat of allSeats let i = index">
+                                <button type="button" 
+                                        (click)="selectSeat(seat, 'second')"
+                                        [disabled]="!isSeatAvailable(seat, 'second')"
+                                        [style.margin-right]="seatsGap(i) ? '40px' : '0'"
+                                        [ngClass]="{
+                                            'bg-yellow-400 text-white border-yellow-500 transform scale-110 shadow-lg': isSeatSelected(seat, 'second'),
+                                            'bg-red-200 text-red-400 cursor-not-allowed': !isSeatAvailable(seat, 'second'),
+                                            'bg-white text-sky-600 hover:border-sky-400 hover:bg-sky-50': isSeatAvailable(seat, 'second') && !isSeatSelected(seat, 'second')
+                                        }"
+                                        class="w-10 h-10 rounded-lg border-2 border-gray-200 transition-all duration-200 flex justify-center items-center font-bold text-sm">
+                                        {{ seat }}
+                                </button>
+                            </div>
+                        </div>
+
+                        <div *ngIf="allSeats.length === 0" class="text-white text-center">
+                            Nessuna configurazione sedili trovata.
+                        </div>
+                        
+                    </ng-container>
+                </div>
+            </div>
+        </form>
     </div>
 </div>

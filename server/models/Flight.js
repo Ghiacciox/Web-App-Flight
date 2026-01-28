@@ -74,14 +74,29 @@ const flightSchema = new mongoose.Schema({
         required: true
     },
 
+   // MODIFICA QUI SOTTO
     bookedSeats : {
-        type: [String], //array di stringhe
+        type: [{
+            seat: { 
+                type: String, 
+                required: true 
+            },
+            travelClass: { 
+                type: String, 
+                required: true,
+                enum: ['economy', 'business', 'firstclass'] 
+            },
+            _id: false // mongoose no id
+        }],
         required: true,
         default: [],
         validate : { 
-            validator: function(v) { //controlla che non ci siano posti duplicati
-                let set = new Set(v);
-                return set.size === v.length;
+            validator: function(v) { 
+                const seatNumbers = v.map(item => `${item.seat}-${item.travelClass}`);
+                //array di stringhe univoche 1A-economy 1A-business
+                let set = new Set(seatNumbers);
+                //set non ammette duplicati
+                return set.size === seatNumbers.length;
             },
             error : 'posti duplicati nel volo'
         }
