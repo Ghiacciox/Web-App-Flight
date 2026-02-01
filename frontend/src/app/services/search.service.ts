@@ -115,8 +115,8 @@ export class SearchService {
     console.log('flightNumber' + flightNumber , 'from' + from, 'to' + to, 'initialDate' + initialDate, 'finalDate' + finalDate, 'company' + company );
 
       let parameters= new HttpParams();
-      if(flightNumber)
-        parameters = parameters.set('flightNumber', flightNumber);
+      parameters = parameters.set('flightNumber', flightNumber);
+      
       if(company) 
         parameters = parameters.set('company', company);
       if(finalDate)

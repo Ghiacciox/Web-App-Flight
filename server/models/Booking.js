@@ -25,7 +25,7 @@ const bookingSchema = new mongoose.Schema({
         default: 'confirmed'
     },
 
-    bookingDate: { 
+    bookingDate: { //quando è stato effettuata la prenotazione
         type: Date, 
         default: Date.now 
     }

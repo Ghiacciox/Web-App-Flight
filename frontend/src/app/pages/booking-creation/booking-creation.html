@@ -38,18 +38,18 @@
                     </div>
                 </div>
 
-                <div class="bg-sky-200 shadow-2xl border border-solid border-yellow-500 rounded-md p-4 mb-6"> 
+                <div class="bg-sky-300 shadow-2xl rounded-md p-4 mb-6"> 
                     <div class="grid grid-cols-3 p-4 gap-4">
                         <div>
-                            <label class="block text-xs font-bold text-sky-600 uppercase mb-1">compagnia aerea</label>
+                            <label class="block text-xs font-bold text-sky-700 uppercase mb-1">compagnia aerea</label>
                             <div class="text-lg font-bold text-black leading-none">{{ firstFlight.company.company || 'Airline' }}</div>
                         </div>
                         <div>
-                            <label class="block text-xs font-bold text-sky-600  uppercase mb-1">numero di volo</label>
+                            <label class="block text-xs font-bold text-sky-700  uppercase mb-1">numero di volo</label>
                             <div class="text-lg font-bold text-black leading-none">{{ firstFlight.flightNumber }}</div>
                         </div>
                         <div>
-                            <label class="block text-xs font-bold text-sky-600  uppercase mb-1">Orario</label>
+                            <label class="block text-xs font-bold text-sky-700  uppercase mb-1">Orario</label>
                             <div class="text-lg font-bold text-black leading-none">{{ firstFlight.departureTime | date:'HH:mm' }} - {{ firstFlight.arrivalTime | date:'HH:mm' }} </div>
                         </div>
                     </div>
@@ -114,13 +114,13 @@
                         [style.grid-template-columns]="'repeat(' + getColumns(firstFlight) + ', min-content)'">
                             <div *ngFor="let seat of allSeats let i = index">
                                 <button type="button" 
-                                        (click)="selectSeat(seat, 'first')"
-                                        [disabled]="!isSeatAvailable(seat, 'first')"
+                                        (click)="selectSeat(seat,selectedClass,'first')"
+                                        [disabled]="!isSeatAvailable(seat, selectedClass, 'first')"
                                         [style.margin-right]="seatsGap(i) ? '40px' : '0'"
                                         [ngClass]="{
                                             'bg-yellow-400 text-white border-yellow-500 transform scale-110 shadow-lg': isSeatSelected(seat, 'first'),
-                                            'bg-red-200 text-red-400 cursor-not-allowed': !isSeatAvailable(seat, 'first'),
-                                            'bg-white text-sky-600 hover:border-sky-400 hover:bg-sky-50': isSeatAvailable(seat, 'first') && !isSeatSelected(seat, 'first')
+                                            'bg-red-200 text-red-400 cursor-not-allowed': !isSeatAvailable(seat, selectedClass, 'first'),
+                                            'bg-white text-sky-600 hover:border-sky-400 hover:bg-sky-50': isSeatAvailable(seat, selectedClass, 'first')&& !isSeatSelected(seat, 'first')
                                         }"
                                         class="w-10 h-10 rounded-lg border-2 border-gray-200 transition-all duration-200 flex justify-center items-center font-bold text-sm">
                                         {{ seat }}
@@ -137,7 +137,7 @@
         </form>
 
         <form [formGroup]="bookingForm" (ngSubmit)="onSubmit()" *ngIf="secondFlight && bookingForm" class="w-full max-w-7xl mx-auto">
-            <div class="bg-white shadow-lg border border-solid border-yellow-500 border-l-4 rounded-md p-4 mb-6 " formGroupName="secondFlight">
+            <div class="bg-white shadow-lg border border-solid border-yellow-500 border-l-4  rounded-md p-4 mb-6 " formGroupName="secondFlight">
                 <div class="flex items-center p-4 gap-4">
                     <span class="bg-sky-300 rounded-md w-fit text-md text-sky-600 font-bold px-2 py-0.5 uppercase">Tratta2</span>   
                     <div class="text-sky-600 text-xl font-bold py-1 rounded">
@@ -145,18 +145,18 @@
                     </div>
                 </div>
 
-                <div class="bg-sky-200 shadow-2xl border border-solid border-yellow-500 rounded-md p-4 mb-6"> 
+                <div class="bg-sky-300 shadow-2xl rounded-md p-4 mb-6"> 
                     <div class="grid grid-cols-3 p-4 gap-4">
                         <div>
-                            <label class="block text-xs font-bold text-sky-600 uppercase mb-1">compagnia aerea</label>
+                            <label class="block text-xs font-bold text-sky-700 uppercase mb-1">compagnia aerea</label>
                             <div class="text-lg font-bold text-black leading-none">{{ secondFlight.company.company || 'Airline' }}</div>
                         </div>
                         <div>
-                            <label class="block text-xs font-bold text-sky-600  uppercase mb-1">numero di volo</label>
+                            <label class="block text-xs font-bold text-sky-700  uppercase mb-1">numero di volo</label>
                             <div class="text-lg font-bold text-black leading-none">{{ secondFlight.flightNumber }}</div>
                         </div>
                         <div>
-                            <label class="block text-xs font-bold text-sky-600  uppercase mb-1">Orario</label>
+                            <label class="block text-xs font-bold text-sky-700  uppercase mb-1">Orario</label>
                             <div class="text-lg font-bold text-black leading-none">{{ secondFlight.departureTime | date:'HH:mm' }} - {{ secondFlight.arrivalTime | date:'HH:mm' }} </div>
                         </div>
                     </div>
@@ -221,13 +221,13 @@
                         [style.grid-template-columns]="'repeat(' + getColumns(secondFlight) + ', min-content)'">
                             <div *ngFor="let seat of allSeats let i = index">
                                 <button type="button" 
-                                        (click)="selectSeat(seat, 'second')"
-                                        [disabled]="!isSeatAvailable(seat, 'second')"
+                                        (click)="selectSeat(seat, selectedClass, 'second')"
+                                        [disabled]="!isSeatAvailable(seat, selectedClass, 'second')"
                                         [style.margin-right]="seatsGap(i) ? '40px' : '0'"
                                         [ngClass]="{
                                             'bg-yellow-400 text-white border-yellow-500 transform scale-110 shadow-lg': isSeatSelected(seat, 'second'),
-                                            'bg-red-200 text-red-400 cursor-not-allowed': !isSeatAvailable(seat, 'second'),
-                                            'bg-white text-sky-600 hover:border-sky-400 hover:bg-sky-50': isSeatAvailable(seat, 'second') && !isSeatSelected(seat, 'second')
+                                            'bg-red-200 text-red-400 cursor-not-allowed': !isSeatAvailable(seat, selectedClass, 'second'),
+                                            'bg-white text-sky-600 hover:border-sky-400 hover:bg-sky-50': isSeatAvailable(seat, selectedClass, 'second') && !isSeatSelected(seat, 'second')
                                         }"
                                         class="w-10 h-10 rounded-lg border-2 border-gray-200 transition-all duration-200 flex justify-center items-center font-bold text-sm">
                                         {{ seat }}
@@ -243,5 +243,43 @@
                 </div>
             </div>
         </form>
+
+        <div class="bg-white shadow-xl border-l-4 border-yellow-500 rounded-lg p-6 mb-6 w-full max-w-7xl mx-auto">
+            <div class="flex flex-col md:flex-row items-center justify-between gap-6">
+
+                <div class="flex flex-col space-y-1 w-full md:w-auto text-center md:text-left border-b md:border-b-0 border-gray-100 pb-4 md:pb-0">
+                    <ng-container *ngIf="firstFlight">
+                        <div class="text-sm font-medium text-gray-500">
+                            Prezzo andata: <span class="font-bold text-sky-600">{{ bookingForm.get('firstFlight.price')?.value | currency:'EUR' }}</span>
+                        </div>
+                    </ng-container>
+
+                    <ng-container *ngIf="secondFlight">
+                        <div class="text-sm font-medium text-gray-500">
+                            Prezzo ritorno: <span class="font-bold text-sky-600">{{ bookingForm.get('secondFlight.price')?.value | currency:'EUR' }}</span>
+                        </div>
+                    </ng-container>
+                </div>
+
+                <div class="flex flex-col md:flex-row items-center gap-6 md:gap-8">
+                    
+                    <div class="flex flex-col items-center md:items-end">
+                        <span class="text-xs font-bold text-gray-400 uppercase tracking-wider">Totale da pagare</span>
+                        <span class="text-xl md:text-xl font-black text-sky-600 leading-none">
+                            {{ getTotalPrice() | currency:'EUR' }}
+                        </span>
+                    </div>
+
+                    <button type="button" 
+                            (click)="onSubmit()"
+                            [disabled]="bookingForm.invalid" 
+                            class="bg-sky-500 text-white text-md font-bold py-4 px-10 rounded-xl shadow-lg hover:shadow-sky-200 hover:bg-sky-600 hover:-translate-y-1 transition-all duration-200 disabled:opacity-100 disabled:cursor-not-allowed disabled:transform-none disabled:shadow-none w-full md:w-auto">
+                        Conferma Prenotazione
+                    </button>
+                    
+                </div>
+
+            </div>
+        </div>
     </div>
 </div>

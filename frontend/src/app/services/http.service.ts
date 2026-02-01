@@ -38,7 +38,9 @@ export interface User {
   company?: string;
 };
 
-@Injectable() //può essere injectata in altri componenti
+@Injectable(
+  {providedIn: 'root'}
+) 
 export class HttpService {
 
   private token: string = '';

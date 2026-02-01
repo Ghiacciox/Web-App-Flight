@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 const Ticket = require('../models/Ticket');
 const Flight = require('../models/Flight');
-const { seatReleaser } = require('./helperController');
+const { seatReleaser, createTicketHelper } = require('./helperController');
 
 exports.getTickets = async (req, res) => {
     try {
@@ -37,7 +37,7 @@ exports.getTickets = async (req, res) => {
                 return res.status(403).json({ error: true, errormessage: "Non puoi vedere i biglietti di altre compagnie" });
             //se non ne trovo erroere
 
-            if (flightDoc.length === 0) {
+            if (flightDoc.length === 0 || flightDoc.length === 0) {
                 return res.status(200).json([]); 
             }
 
@@ -71,30 +71,17 @@ exports.createTicket = async (req, res) => {
         if( req.auth.role !== 'passenger'){ 
             return res.status(400).json({ error: true, errormessage: "Solo i passeggeri possono acquistare i biglietti" });
         }
-        const { flightId, seat, flightClass, extras } = req.body;
+        const { flightId, seat, flightClass, extras, price } = req.body;
 
         if(!flightId || !seat || !flightClass){
             return res.status(400).json({ error: true, errormessage: "Mancano dati obbligatori per la creazione del biglietto" });
         }
-
         let userId = req.auth.id;
-
-        session = await mongoose.startSession();
-        //le operazioni salvate con session sono tutte assime 
-        // nel senso che ne va una o non ne va nessuna
-        session.startTransaction();
-
-        let newTicket = await createTicketHelper(userId, flightId, seat, flightClass, extras, session);
-
-        await session.commitTransaction();
-        session.endSession();
+        let newTicket = await createTicketHelper(userId, flightId, seat, flightClass, extras, price);
 
         return res.status(200).json({ error: false, errormessage: "" , message: "Biglietto creato con successo", ticketId: newTicket._id});
     } catch (err) {
-        if (session) {
-            await session.abortTransaction();
-            session.endSession();
-        }
+        console.error(err);
         res.status(400).json({ error: true, errormessage: "Errore creazione biglietto" });
     }
 };
@@ -113,13 +100,9 @@ exports.deleteTicket= async (req, res) => {
         if(req.auth.role !== 'passenger' && req.auth.role != 'admin'){
             throw new Error("Non hai i permessi per cancellare il biglietto");
         }
-            
-        session = await mongoose.startSession();
-        //le operazioni salvate con session sono tutte assime 
-        // nel senso che ne va una o non ne va nessuna
-        session.startTransaction();
-        let ticketToDelete = await Ticket.findById(ticketID).session(session);
-        let flightSeatToDelete = await Flight.findById(ticketToDelete.flight).session(session);
+    
+        let ticketToDelete = await Ticket.findById(ticketID);
+        let flightSeatToDelete = await Flight.findById(ticketToDelete.flight);
 
         if(!ticketToDelete){
             throw new Error("Biglietto non trovato");
@@ -138,13 +121,8 @@ exports.deleteTicket= async (req, res) => {
         }
 
         //flightSeatToDelete.bookedSeats.pull({ seat: ticketToDelete.seat, travelClass: ticketToDelete.flightClass }); //cancello posto
-        seatReleaser(flightSeatToDelete._id, ticketToDelete.seat, ticketToDelete.flightClass, session);
-
-        await flightSeatToDelete.save({ session });
-        await Ticket.findByIdAndDelete(ticketID).session(session); 
-
-        await session.commitTransaction();
-        session.endSession();
+        await seatReleaser(flightSeatToDelete.flight, ticketToDelete.seat, ticketToDelete.flightClass);
+        await Ticket.findByIdAndDelete(ticketID); 
 
         return res.status(200).json({ message: "Biglietto cancellato con successo!"});
     }catch(err){

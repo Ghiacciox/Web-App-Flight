@@ -74,7 +74,6 @@ const flightSchema = new mongoose.Schema({
         required: true
     },
 
-   // MODIFICA QUI SOTTO
     bookedSeats : {
         type: [{
             seat: { 

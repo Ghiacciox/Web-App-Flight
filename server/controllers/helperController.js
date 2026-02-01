@@ -5,6 +5,7 @@ const Ticket = require('../models/Ticket');
 const User = require('../models/Users'); 
 
 
+
 const resolveAirportId = async (searchString) => {
     if (!searchString) return null;
     // Cerca per Codice (LIN)
@@ -219,6 +220,8 @@ const findFlightsHelper = async (flightNumber, from, to, initialDate , finalDate
     return [...directFlights, ...scaleFlights];    
 }
 
+
+/*
 //SEAt VALIDATORRR
 const seatValidator = async (airplane, seat, flightClass) => {
     try {
@@ -243,14 +246,6 @@ const seatValidator = async (airplane, seat, flightClass) => {
             console.log("falso stai posto occupato");
             return false;
         }
-
-        const isAlreadyBooked = airplane.bookedSeats.some(booking => 
-            booking.seat === seat && booking.travelClass === flightClass
-        );
-
-        if (isAlreadyBooked) {
-            throw new Error("Posto già occupato");
-        }
         //non salvo qua per la race condition
         return true;
         
@@ -259,16 +254,23 @@ const seatValidator = async (airplane, seat, flightClass) => {
         return false;
     }
 };
+*/
 
 //SEAt VALIDATORRR
-const seatReleaser = async (airplane, seat, flightClass, session) => {
+const seatReleaser = async (flightID, seat, flightClass) => {
     try {
-        let flightSeatToDelete= await Flight.findById(airplane).session(session);
-        if(!flightSeatToDelete){
-            throw new Error("Volo non trovato"); 
+        const selectedSeat ={
+            seat: seat,
+            travelClass: flightClass
+        };
+        await Flight.updateOne(     
+            { _id: flightID },
+            { 
+                $pull: { 
+                    bookedSeats: selectedSeat 
+                } 
         }
-        flightSeatToDelete.bookedSeats.pull({ seat: seat, travelClass: flightClass });
-        await flightSeatToDelete.save({ session });
+        );
         return true;
     }catch (err) {
         console.log("Errore helper validazione posti:", err);
@@ -277,41 +279,46 @@ const seatReleaser = async (airplane, seat, flightClass, session) => {
 };
 
 //creazione biglietto
-const createTicketHelper = async (userId, flightId, seat, flightClass, extras, session) => {
+const createTicketHelper = async (userId, flightId, seat, flightClass, extras, price) => {
 
-    //le operazioni salvate con session sono tutte assime 
-    // nel senso che ne va una o non ne va nessuna
-    if(session) 
-        session.startTransaction();
+    const selectedSeat ={
+        seat: seat,
+        travelClass: flightClass
+    };
 
-    let flight = await Flight.findById(flightId)
-        .populate('airplane')
-        .session(session);
+    const flight = await Flight.findOneAndUpdate(
+       { 
+            _id: flightId, 
+            bookedSeats: { 
+                $not: {  
+                    //non deve esserci un sedile uguale
+                    $elemMatch: selectedSeat
+                }
+            }
+        },
+        { 
+            //se non c'è pusho
+            $push: { 
+                bookedSeats: selectedSeat
+            } 
+        },
+        { new: true } // Restituisce il volo aggiornato
+    ).populate('airplane');
 
     if(!flight){
-        throw new Error("Volo non trovato");
+        throw new Error("Volo non trovato/ posto uoccupato");
     }
-
-    if(!await seatValidator(flight.airplane, seat, flightClass)){
-        throw new Error("Posto non valido o già occupato");
-    }
-
-    flight.bookedSeats.push({ 
-        seat: seat, 
-        travelClass: flightClass 
-    });
-
-    await flight.save({ session });
-
+    
     let newTicket = new Ticket({
         flight: flightId,
         user: userId,
         seat: seat,
         class: flightClass,
-        extras: extras || {}
+        extras: extras || {},
+        price: price
     });  
 
-    await newTicket.save({ session });
+    await newTicket.save();
     return newTicket
 }
     

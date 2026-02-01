@@ -3,10 +3,11 @@ const mongoose = require('mongoose');
 const Booking = require('../models/Booking');
 const Ticket = require('../models/Ticket');
 const Flight = require('../models/Flight');
-const { seatReleaser } = require('./helperController');
+const { seatReleaser, createTicketHelper } = require('./helperController');
 
-exports.createBooking = async (req, res) => {
-    let session = null;    
+exports.createBooking = async (req, res) => {  
+    let firstTicket = null;
+    let secondTicket = null;
     try{
          if(req.auth.role !== 'passenger'){ 
             return res.status(400).json({ error: true, errormessage: "Solo i passeggeri possono creare prenotazioni" });
@@ -19,12 +20,9 @@ exports.createBooking = async (req, res) => {
         }
    
         let userId = req.auth.id;
-        session = await mongoose.startSession();
-        session.startTransaction();
-
+     
         const flight1 = await Flight.findById(tick1.flightId)
             .populate({ path: 'route', populate: { path: 'arrivalAirport' } }) 
-            .session(session);
 
         if(!flight1){
            throw new Error("Volo del primo biglietto non trovato");
@@ -34,7 +32,6 @@ exports.createBooking = async (req, res) => {
         if(tick2){
             flight2 = await Flight.findById(tick2.flightId)
                 .populate({ path: 'route', populate: { path: 'departureAirport' } })
-                .session(session);
         }
        
         if(flight1 && flight2){
@@ -54,33 +51,35 @@ exports.createBooking = async (req, res) => {
             }
         }
 
-        let firstTicket = await createTicketHelper(userId, tick1.flightId, tick1.seat, tick1.flightClass, tick1.extras, session);
+        let firstTicket = await createTicketHelper(userId, tick1.flightId, tick1.seat, tick1.flightClass, tick1.extras, tick1.price);
         let secondTicket = null;
-        if(tick2)
-            secondTicket = await createTicketHelper(userId, tick2.flightId, tick2.seat, tick2.flightClass, tick2.extras, session);
-
-
+        if(tick2){
+            try{
+                secondTicket = await createTicketHelper(userId, tick2.flightId, tick2.seat, tick2.flightClass, tick2.extras, tick2.price);
+            }catch(err){
+                await seatReleaser(firstTicket.flight, firstTicket.seat, firstTicket.flightClass);
+                await Ticket.findByIdAndDelete(firstTicket._id);
+                
+                throw new Error("Impossibile prenotare il ritorno, annullamento andata");
+            }
+            
+        }
+        
         let booking = new Booking({
             user: userId,
             tickets: [firstTicket._id, secondTicket ? secondTicket._id : null].filter(t => t != null),
             totalPrice: ((firstTicket ? firstTicket.price : 0) + (secondTicket ? secondTicket.price : 0))
         });
 
-        await booking.save({ session });
-        await session.commitTransaction();
-        session.endSession();
-
+        await booking.save();
 
         return res.status(200).json({ error: false, errormessage: "" , message: "Prenotazione creata con successo", bookingId: booking._id});
     
     }catch{
-        if (session) {
-            await session.abortTransaction();
-            session.endSession();
-        }
         res.status(400).json({ error: true, errormessage: "Errore creazione biglietto" });
     }
 };
+
 
 exports.getBooking = async (req, res) => {
     try {
@@ -89,27 +88,30 @@ exports.getBooking = async (req, res) => {
 
         if (req.auth.role === 'passenger') {
             filter.user = req.auth.id;
-            filter._id = bookingId;
+            if (bookingId) {
+                filter._id = bookingId;
+            }
         }
 
         else if (req.auth.role === 'admin') {
             if (userId) 
-                filter.user = user;
+                filter.user = userId;
             if (bookingId){
                 filter._id = bookingId;
             }   
         }
+
         else if (req.auth.role === 'airline') {
             res.status(403).json({ error: true, errormessage: "una compagnia non può vedere i biglietti" });
         }
 
         if (dateFrom || dateTo) {
-            filter.date = {};
+            filter.bookingDate = {};
             if (dateFrom) {
-                filter.date.$gte = new Date(dateFrom);
+                filter.bookingDate.$gte = new Date(dateFrom);
             }
             if (dateTo) {
-                filter.date.$lte = new Date(dateTo);
+                filter.bookingDate.$lte = new Date(dateTo);
             }           
         }
 
@@ -135,9 +137,8 @@ exports.getBooking = async (req, res) => {
     }
 };
 
-exports.cancelBooking = async (req, res) => {
 
-    let session = null;
+exports.cancelBooking = async (req, res) => {
     try {
         const { bookingId } = req.params;
         
@@ -147,12 +148,9 @@ exports.cancelBooking = async (req, res) => {
 
         if(req.auth.role !== 'passenger' && req.auth.role != 'admin'){
             return res.status(403).json({ error: true, errormessage: "booking non tuo o permessi insufficienti per essere cancellato" });
-        }
-
-        session = await mongoose.startSession();
-        session.startTransaction();     
+        }  
         
-        let myBooking = await Booking.findById(bookingId).session(session);
+        let myBooking = await Booking.findById(bookingId);
         if(!myBooking){
             throw new Error("Prenotazione non trovata");
         }
@@ -170,22 +168,14 @@ exports.cancelBooking = async (req, res) => {
         await myBooking.populate('tickets');
 
         for(let seatTicket of myBooking.tickets){
-            let flightID= seatTicket.flight;
-            let deleting=await seatReleaser(flightID, seatTicket.seat, session)
+            let deleting=await seatReleaser(seatTicket.flight, seatTicket.seat, seatTicket.flightClass);
             if(!deleting)
                 throw new Error("Errore rilascio posto");
         }
-
-        await myBooking.save({ session });
-        await session.commitTransaction();
-        session.endSession();
-
+        await myBooking.save();
+        
         res.status(200).json({ error: false, errormessage: "" , message: "Prenotazione cancellata con successo"});  
     } catch (err) {
-        if(session) {
-            await session.abortTransaction();
-            session.endSession();
-        }
         console.log(err);
         res.status(500).json({ error: true, errormessage: "Errore nella cancellazione della prenotazione" });
     }

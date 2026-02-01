@@ -4,7 +4,7 @@ import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router, RouterModule, ActivatedRoute} from '@angular/router';
 import { HttpService } from '../../services/http.service';
-import { BookingService } from '../../services/booking.service';
+import { BookingService, ticketInfo } from '../../services/booking.service';
 
 @Component({
   selector: 'app-booking-creation',
@@ -18,8 +18,7 @@ export class BookingCreationComponent implements OnInit {
 
   firstFlight: Flight | null = null;
   secondFlight: Flight | null = null;
-
-
+  
   public availableClasses = ['economy', 'business', 'firstclass'];
 
   selectedClass: string = 'economy';
@@ -201,25 +200,44 @@ export class BookingCreationComponent implements OnInit {
     return (index + 1) % (seatsPerRow / 2) === 0;
   }
     
+  /// SEDILI 
 
-  public isSeatAvailable(seat: string, flightNumber: 'first' | 'second'): boolean {
-    const bookedSeats = flightNumber === 'first' ? this.bookedSeatsFirst : this.bookedSeatsSecond;
-    return !bookedSeats.includes(seat);
+  // Verifica se il posto è libero controllando l'array di oggetti
+  public isSeatAvailable(seat: string, flightClass: string, flightNumber: 'first' | 'second'): boolean {
+    const bookedSeatsArray = flightNumber === 'first' ? this.bookedSeatsFirst : this.bookedSeatsSecond;
+
+    if (!bookedSeatsArray) return true;
+
+    //se stesso posto e stessa classe allora è prenotato
+    const isBooked = bookedSeatsArray.some(booking => 
+      booking.seats === seat && booking.class === flightClass
+    );
+
+    return !isBooked; // Se è prenotato (true), restituisce false (non disponibile)
   }
 
+  // Verifica se il posto è selezionato nel form per evidenziarlo
   public isSeatSelected(seat: string, flightNumber: 'first' | 'second'): boolean {
     const formPath = flightNumber === 'first' ? 'firstFlight.seat' : 'secondFlight.seat';
     return this.bookingForm.get(formPath)?.value === seat;
   }
 
+  // Seleziona il posto aggiornando il form
   public selectSeat(seat: string, flightClass: string, flightNumber: 'first' | 'second'): void {
-    if (!this.isSeatAvailable(seat, flightNumber)) {
+  
+    if (!this.isSeatAvailable(seat, flightClass, flightNumber)) {
       return;
     }
-    
-    // Auto-correzione classe se necessario (opzionale)
+
     const seatFormPath = flightNumber === 'first' ? 'firstFlight.seat' : 'secondFlight.seat';
-    this.bookingForm.get(seatFormPath)?.setValue(seat);
+    
+    // Se clicco su un posto già selezionato, lo deseleziono (opzionale, ma utile per UX)
+    const currentSelection = this.bookingForm.get(seatFormPath)?.value;
+    if (currentSelection === seat) {
+        this.bookingForm.get(seatFormPath)?.setValue(''); // Deseleziona
+    } else {
+        this.bookingForm.get(seatFormPath)?.setValue(seat); // Seleziona
+    }
   }
 
 
@@ -256,10 +274,40 @@ export class BookingCreationComponent implements OnInit {
       this.bookingForm.markAllAsTouched();
       return;
     }
-
     const bookingData = this.bookingForm.value;
     console.log('Invio:', bookingData);
-    this.router.navigate(['/booking-confirmation']);
+    const t1: ticketInfo = {
+      userId: this.http.get_id(),
+      flightId: this.firstFlight!._id,
+      seat: bookingData.firstFlight.seat,
+      flightClass: bookingData.firstFlight.class,
+      extras: bookingData.firstFlight.extras,
+      price: bookingData.firstFlight.price
+    };
+
+    let t2: ticketInfo | null = null; 
+
+    if(this.secondFlight){
+      t2 = {
+        userId: this.http.get_id(),
+        flightId: this.secondFlight!._id,
+        seat: bookingData.secondFlight.seat,
+        flightClass: bookingData.secondFlight.class,
+        extras: bookingData.secondFlight.extras,
+        price: bookingData.secondFlight.price
+      };
+    }
+
+    this.bookingService.createTicket(t1, t2).subscribe({
+      next: (response) => {
+        console.log('Risposta dal server:', response);
+        this.router.navigate(['/booking-prenotation']);
+      },
+      error: (error) => {
+        console.error('Errore durante la creazione del biglietto:', error);
+        alert('Si è verificato un errore durante la creazione del biglietto. Riprova più tardi.');
+      }
+    });
   }
 
   get isLoggedIn(): boolean {

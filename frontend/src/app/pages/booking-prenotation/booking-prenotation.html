@@ -1,0 +1,215 @@
+<div class="min-h-screen flex flex-col bg-gray-100">
+    
+    <nav class="bg-sky-600 text-white shadow-lg sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <div class="flex-shrink-0 font-bold text-2xl tracking-wider cursor-pointer" routerLink="/home">
+                    Bau<span class="text-yellow-500">Flights</span>
+                </div>
+                <div class="flex items-center space-x-6 font-medium">
+                     <a routerLink="/home" class="hover:text-yellow-500 transition-colors cursor-pointer">Home</a>
+                     <a routerLink="/profile" class="hover:text-yellow-500 transition-colors cursor-pointer">Profilo</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="flex flex-col grow bg-sky-400 items-center justify-center p-8 space-y-10">
+
+        <h2 class="text-2xl font-bold text-gray-800 mb-6 bg-white px-6 py-2 rounded-lg shadow-md">
+            Le tue Prenotazioni: {{ mytitles.length }} viaggi trovati
+        </h2>
+
+        <ng-container *ngFor="let booking of mytitles">
+            
+            <div class="mb-6 w-full max-w-5xl">
+                
+                <ng-container *ngIf="booking.tickets.length === 1">
+                    <div class="bg-white shadow-2xl border border-solid border-yellow-500 rounded-md p-4 mb-6 relative overflow-hidden"> 
+                        
+                        <div class="flex justify-between items-center mb-4 border-b border-gray-100 pb-2">
+                             <span class="text-xs font-bold text-gray-400 uppercase">
+                                Prenotato il: {{ booking.bookingDate | date:'dd/MM/yyyy' }}
+                             </span>
+                             <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider"
+                                   [ngClass]="{
+                                     'bg-green-100 text-green-700': booking.status === 'confirmed',
+                                     'bg-red-100 text-red-700': booking.status === 'cancelled'
+                                   }">
+                                 {{ booking.status }}
+                             </span>
+                        </div>
+
+                        <div class="grid grid-cols-3 justify-start items-center mb-4 bg-yellow-50 p-2 rounded-md border-l-4 border-yellow-500 shadow-sm">
+                            <span class="bg-sky-500 w-fit text-xs text-white font-bold px-2 py-0.5 rounded uppercase">
+                                Solo Andata
+                            </span>
+
+                            <div class="text-sky-600 text-xs font-bold py-1 rounded uppercase">
+                                <label class="block text-[10px] text-sky-800 font-bold uppercase mb-0.5">Compagnia :</label>
+                                <span>{{ booking.tickets[0].flight.company || 'Airline' }}</span>
+                            </div>
+                            
+                            <div class="text-sky-600 text-xs font-bold py-1 rounded uppercase">
+                                <label class="block text-[10px] text-sky-800 font-bold uppercase mb-0.5">Numero di Volo :</label>
+                                <span>{{ booking.tickets[0].flight.flightNumber }}</span>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-4 items-center gap-4">
+                            <div>
+                                <label class="block text-xs font-bold text-gray-400 uppercase mb-1">Città di partenza</label>
+                                <div class="text-lg font-bold text-black leading-none">
+                                    {{ booking.tickets[0].flight.route.departureAirport.city }}
+                                </div>
+                                <div class="text-sm text-gray-500 mt-1">
+                                    {{ booking.tickets[0].flight.departureTime | date:'dd/MM HH:mm' }}
+                                </div>
+                                <div class="text-xs text-sky-600 font-mono font-bold">
+                                    {{ booking.tickets[0].flight.route.departureAirport.code }}
+                                </div>
+                            </div>
+
+                            <div class="text-center text-gray-300 text-2xl">➝</div>
+
+                            <div>
+                                <label class="block text-xs font-bold text-gray-400 uppercase mb-1">Città di Arrivo</label>
+                                <div class="text-lg font-bold text-black leading-none">
+                                    {{ booking.tickets[0].flight.route.arrivalAirport.city }}
+                                </div>
+                                <div class="text-sm text-gray-500 mt-1">
+                                    {{ booking.tickets[0].flight.arrivalTime | date:'dd/MM HH:mm' }}
+                                </div>
+                                <div class="text-xs text-sky-600 font-mono font-bold">
+                                    {{ booking.tickets[0].flight.route.arrivalAirport.code }}
+                                </div>
+                            </div>
+
+                            <div class="text-right flex flex-col items-end">
+                                <label class="block text-xs font-bold text-gray-400 uppercase">Totale Pagato</label>
+                                <div class="text-2xl font-bold text-sky-600 mb-2">
+                                    {{ booking.totalPrice | currency:'EUR' }}
+                                </div>
+                                <button (click)="goToDetail(booking._id)" class="bg-sky-600 hover:bg-sky-700 text-white font-bold py-2 px-6 rounded shadow transition-colors">
+                                    Dettagli
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </ng-container>
+
+                <ng-container *ngIf="booking.tickets.length > 1">
+                    <div class="bg-white shadow-2xl border border-solid border-sky-600 border-l-4 rounded-md p-4 mb-6"> 
+                        
+                        <div class="flex justify-between items-center mb-4 border-b border-dashed border-gray-300 pb-2">
+                            <span class="text-xs font-bold text-gray-400 uppercase">
+                               Prenotato il: {{ booking.bookingDate | date:'dd/MM/yyyy' }}
+                            </span>
+                            <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider"
+                                  [ngClass]="{
+                                    'bg-green-100 text-green-700': booking.status === 'confirmed',
+                                    'bg-red-100 text-red-700': booking.status === 'cancelled'
+                                  }">
+                                {{ booking.status }}
+                            </span>
+                       </div>
+
+                        <div class="mb-6 pb-6 border-b border-dashed border-gray-300">
+                            <div class="grid grid-cols-3 justify-start items-center mb-3 bg-yellow-50 p-2 rounded-md border-l-4 border-yellow-500 shadow-sm">
+                                <span class="bg-sky-500 w-fit text-xs text-white font-bold px-2 py-0.5 rounded uppercase">
+                                    Andata
+                                </span>
+                                <div class="text-sky-600 text-xs font-bold py-1 rounded uppercase">
+                                    <label class="block text-[10px] text-sky-800 font-bold uppercase mb-0.5">Compagnia :</label>
+                                    <span>{{ booking.tickets[0].flight.company || 'Airline' }}</span>
+                                </div>
+                                <div class="text-sky-600 text-xs font-bold py-1 rounded uppercase">
+                                    <label class="block text-[10px] text-sky-800 font-bold uppercase mb-0.5">Volo :</label>
+                                    <span>{{ booking.tickets[0].flight.flightNumber }}</span>
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-4 items-center gap-4">
+                                <div>
+                                    <label class="block text-xs font-bold text-gray-400 uppercase mb-1">Partenza</label>
+                                    <div class="text-lg font-bold text-black leading-none">{{ booking.tickets[0].flight.route.departureAirport.city }}</div>
+                                    <div class="text-sm text-gray-500">{{ booking.tickets[0].flight.departureTime | date:'dd/MM HH:mm' }}</div>
+                                    <div class="text-xs text-sky-600 font-mono">{{ booking.tickets[0].flight.route.departureAirport.code }}</div>
+                                </div>
+
+                                <div class="text-center text-gray-300 text-xl">➝</div>
+
+                                <div>
+                                    <label class="block text-xs font-bold text-gray-400 uppercase mb-1">Arrivo</label>
+                                    <div class="text-lg font-bold text-black leading-none">{{ booking.tickets[0].flight.route.arrivalAirport.city }}</div>
+                                    <div class="text-sm text-gray-500">{{ booking.tickets[0].flight.arrivalTime | date:'dd/MM HH:mm' }}</div>
+                                    <div class="text-xs text-sky-600 font-mono">{{ booking.tickets[0].flight.route.arrivalAirport.code }}</div>
+                                </div>
+
+                                <div class="text-right">
+                                    <label class="block text-[10px] font-bold text-gray-400 uppercase">Posto</label>
+                                    <div class="text-sm font-bold text-gray-600">
+                                        {{ booking.tickets[0].seat }}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <div class="grid grid-cols-3 justify-start items-center mb-3 bg-yellow-50 p-2 rounded-md border-l-4 border-yellow-500 shadow-sm">
+                                <span class="bg-orange-500 w-fit text-xs text-white font-bold px-2 py-0.5 rounded uppercase">
+                                    Ritorno
+                                </span>
+                                <div class="text-sky-600 text-xs font-bold py-1 rounded uppercase">
+                                    <label class="block text-[10px] text-sky-800 font-bold uppercase mb-0.5">Compagnia :</label>
+                                    <span>{{ booking.tickets[1].flight.company || 'Airline' }}</span>
+                                </div>
+                                <div class="text-sky-600 text-xs font-bold py-1 rounded uppercase">
+                                    <label class="block text-[10px] text-sky-800 font-bold uppercase mb-0.5">Volo :</label>
+                                    <span>{{ booking.tickets[1].flight.flightNumber }}</span>
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-4 items-center gap-4">
+                                <div>
+                                    <label class="block text-xs font-bold text-gray-400 uppercase mb-1">Partenza</label>
+                                    <div class="text-lg font-bold text-black leading-none">{{ booking.tickets[1].flight.route.departureAirport.city }}</div>
+                                    <div class="text-sm text-gray-500">{{ booking.tickets[1].flight.departureTime | date:'dd/MM HH:mm' }}</div>
+                                    <div class="text-xs text-sky-600 font-mono">{{ booking.tickets[1].flight.route.departureAirport.code }}</div>
+                                </div>
+
+                                <div class="text-center text-gray-300 text-xl">➝</div>
+
+                                <div>
+                                    <label class="block text-xs font-bold text-gray-400 uppercase mb-1">Arrivo</label>
+                                    <div class="text-lg font-bold text-black leading-none">{{ booking.tickets[1].flight.route.arrivalAirport.city }}</div>
+                                    <div class="text-sm text-gray-500">{{ booking.tickets[1].flight.arrivalTime | date:'dd/MM HH:mm' }}</div>
+                                    <div class="text-xs text-sky-600 font-mono">{{ booking.tickets[1].flight.route.arrivalAirport.code }}</div>
+                                </div>
+
+                                <div class="text-right flex flex-col items-end">
+                                    <label class="block text-xs font-bold text-sky-600 uppercase">Totale Viaggio</label>
+                                    <div class="text-2xl font-bold text-sky-600 mb-2">
+                                        {{ booking.totalPrice | currency:'EUR' }}
+                                    </div>
+                                    
+                                    <button (click)="goToDetail(booking._id)" class="bg-sky-600 hover:bg-sky-700 text-white font-bold py-2 px-6 rounded shadow transition-colors">
+                                        Dettagli
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </ng-container>
+                
+            </div>
+        </ng-container>
+
+        <div *ngIf="mytitles.length === 0" class="text-center py-10 bg-white p-8 rounded shadow-lg">
+            <p class="text-gray-500 text-xl">Non hai ancora effettuato prenotazioni.</p>
+            <button routerLink="/home" class="mt-4 text-sky-600 font-bold underline">Cerca un volo</button>
+        </div>
+
+    </div>
+</div>
