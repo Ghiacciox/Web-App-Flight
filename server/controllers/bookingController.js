@@ -171,10 +171,15 @@ exports.cancelBooking = async (req, res) => {
         await myBooking.populate('tickets');
 
         for(let seatTicket of myBooking.tickets){
-            let deleting=await seatReleaser(seatTicket.flight, seatTicket.seat, seatTicket.flightClass);
+            let deleting = await seatReleaser(
+                seatTicket.flight, 
+                seatTicket.seat, 
+                seatTicket.class 
+            );
+            
             if(!deleting)
                 throw new Error("Errore rilascio posto");
-        }
+        }       
         await myBooking.save();
         
         res.status(200).json({ error: false, errormessage: "" , message: "Prenotazione cancellata con successo"});  

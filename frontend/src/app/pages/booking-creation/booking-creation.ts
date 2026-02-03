@@ -164,17 +164,32 @@ export class BookingCreationComponent implements OnInit {
 
   // Verifica se il posto è libero controllando l'array di oggetti
   public isSeatAvailable(seat: string, flightClass: string, flightNumber: 'first' | 'second'): boolean {
-    const bookedSeatsArray = flightNumber === 'first' ? this.bookedSeatsFirst : this.bookedSeatsSecond;
+    let bookedSeatsArray : any[] | null = null; // Metti any temporaneamente per evitare errori TS
 
-    if (!bookedSeatsArray) return true;
+    if (flightNumber === 'first') {
+      bookedSeatsArray = this.bookedSeatsFirst;
+    } else if (flightNumber === 'second') {
+      bookedSeatsArray = this.bookedSeatsSecond;
+    } 
 
-    //se stesso posto e stessa classe allora è prenotato
-    const isBooked = bookedSeatsArray.some(booking => 
-      booking.seats === seat && booking.class === flightClass
-    );
+    if (!bookedSeatsArray || bookedSeatsArray.length === 0) return true; 
 
-    return !isBooked; // Se è prenotato (true), restituisce false (non disponibile)
-  }
+    // --- DEBUG: STAMPA IL PRIMO ELEMENTO PER VEDERE I NOMI REALI ---
+    // Fallo solo per il posto 1A per non intasare la console
+    if (seat === '1A') {
+        console.log('STRUTTURA REALE DATA DAL SERVER:', JSON.stringify(bookedSeatsArray[0]));
+    }
+    // -------------------------------------------------------------
+
+    const isBooked = bookedSeatsArray.some(booking => {
+        // PROBABILMENTE LA SOLUZIONE È QUESTA (seat singolare, travelClass):
+        // Verifica se i nomi coincidono con quelli stampati nel log sopra
+        return (booking.seat || booking.seats) === seat && 
+               (booking.travelClass || booking.class) === flightClass;
+    });
+
+    return !isBooked; 
+}
 
   // Verifica se il posto è selezionato nel form per evidenziarlo
   public isSeatSelected(seat: string, flightNumber: 'first' | 'second'): boolean {
@@ -221,6 +236,11 @@ export class BookingCreationComponent implements OnInit {
   }
 
   getTotalPrice(): number {
+    
+    if (!this.bookingForm) {
+      return 0;
+    }
+    
     let total = 0;
     total += this.bookingForm.get('firstFlight.price')?.value || 0;
     if (this.secondFlight) {
@@ -228,6 +248,7 @@ export class BookingCreationComponent implements OnInit {
     }
     return total;
   }
+
 
   onSubmit(): void {
     if (this.bookingForm.invalid) {

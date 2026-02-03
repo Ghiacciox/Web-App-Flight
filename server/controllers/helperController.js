@@ -256,7 +256,6 @@ const seatValidator = async (airplane, seat, flightClass) => {
 };
 */
 
-//SEAt VALIDATORRR
 const seatReleaser = async (flightID, seat, flightClass) => {
     try {
         const selectedSeat ={
@@ -271,6 +270,7 @@ const seatReleaser = async (flightID, seat, flightClass) => {
                 } 
         }
         );
+        console.log("posto rilasciato con successo :", seat, flightClass, "nel volo", flightID);
         return true;
     }catch (err) {
         console.log("Errore helper validazione posti:", err);

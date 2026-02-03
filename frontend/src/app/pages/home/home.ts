@@ -10,7 +10,7 @@ import { HttpService } from '../../services/http.service';
   selector: 'app-home',
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule, RouterModule],
-  providers: [SearchService, HttpService, RouterModule],
+  providers: [SearchService, RouterModule],
   templateUrl: './home.html',
   styleUrls: ['./home.css'],
 })  
@@ -19,7 +19,7 @@ export class HomeComponent {
   
   searchForm: FormGroup;
 
-  constructor(private fb: FormBuilder, private http: HttpService, private router: Router) {
+  constructor(private fb: FormBuilder, public http: HttpService, private router: Router) {
     this.searchForm = this.fb.group({
       flightNumber: [''],
       from: ['', Validators.required],

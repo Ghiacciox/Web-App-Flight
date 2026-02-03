@@ -31,5 +31,23 @@ export class BookingDetailComponent implements OnInit {
       this.MyTitle = this.bookingService.selectedBookingSource;
       console.log('Dettagli prenotazione:', this.MyTitle);
   }
+
+  onDeleteBooking(): void {
+    if (!this.MyTitle) {
+      alert('Nessuna prenotazione selezionata per la cancellazione.');
+      return;
+    }
+    this.bookingService.cancelPrenotation(this.MyTitle._id).subscribe({
+      next: (response) => {
+        console.log('Prenotazione cancellata con successo:', response);
+        alert('Prenotazione cancellata con successo.');
+        this.router.navigate(['/home']);
+      },
+      error: (error) => {
+        console.error('Errore nella cancellazione della prenotazione:', error);
+        alert('Errore nella cancellazione della prenotazione. Riprova più tardi.');
+      }
+    });
+  }
   
 }

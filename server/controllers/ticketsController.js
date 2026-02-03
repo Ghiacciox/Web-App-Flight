@@ -121,7 +121,7 @@ exports.deleteTicket= async (req, res) => {
         }
 
         //flightSeatToDelete.bookedSeats.pull({ seat: ticketToDelete.seat, travelClass: ticketToDelete.flightClass }); //cancello posto
-        await seatReleaser(flightSeatToDelete.flight, ticketToDelete.seat, ticketToDelete.flightClass);
+        await seatReleaser(flightSeatToDelete.flight, ticketToDelete.seat, ticketToDelete.class);
         await Ticket.findByIdAndDelete(ticketID); 
 
         return res.status(200).json({ message: "Biglietto cancellato con successo!"});

@@ -50,6 +50,5 @@ export class BookingPrenotationComponent implements OnInit {
     this.router.navigate(['/bookingDetail']);
   }
 
-  
-  
+
 }
