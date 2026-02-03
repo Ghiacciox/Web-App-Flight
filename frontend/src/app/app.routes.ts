@@ -5,6 +5,7 @@ import { HomeComponent } from './pages/home/home';
 import { FlightsearchComponent } from './pages/flightsearch/flightsearch';
 import { BookingCreationComponent } from './pages/booking-creation/booking-creation';
 import { BookingPrenotationComponent } from './pages/booking-prenotation/booking-prenotation';
+import { BookingDetailComponent } from './pages/booking-detail/booking-detail';
 
 
 //qua ho tutte le rotte posso navigare in base 
@@ -16,5 +17,6 @@ export const routes: Routes = [
     { path: 'home', component: HomeComponent },
     { path: 'results', component: FlightsearchComponent },
     { path: 'bookingCreation', component: BookingCreationComponent },
-    { path: 'bookingPrenotation', component: BookingPrenotationComponent }
+    { path: 'bookingPrenotation', component: BookingPrenotationComponent },
+    { path: 'bookingDetail', component: BookingDetailComponent }
 ];

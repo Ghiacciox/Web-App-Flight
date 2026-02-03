@@ -328,7 +328,6 @@ module.exports = {
     findFlightsHelper,
     findDirectFlightsHelper,
     findScaleFlightsHelper,
-    seatValidator,
     createTicketHelper, 
     seatReleaser
 };

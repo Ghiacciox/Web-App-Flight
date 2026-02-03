@@ -10,7 +10,7 @@ import { BookingService, ticketInfo } from '../../services/booking.service';
   selector: 'app-booking-creation',
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule, RouterModule],
-  providers: [ HttpService, SearchService],
+  providers: [ SearchService],
   templateUrl: './booking-creation.html',
   styleUrl: './booking-creation.css',
 })
@@ -47,10 +47,10 @@ export class BookingCreationComponent implements OnInit {
   constructor(
     private router: Router,
     private searchService: SearchService,
-    private http: HttpService,
+    public http: HttpService,
     private fb: FormBuilder,
     private route: ActivatedRoute,
-    private bookingService: BookingService
+    public bookingService: BookingService
   ) {}
 
   ngOnInit(): void { 
@@ -155,52 +155,12 @@ export class BookingCreationComponent implements OnInit {
     this.bookingForm.get(classFormPath)?.setValue(flightClass);
   }
 
-  // FIX: Helper per ottenere il prezzo in modo sicuro nell'HTML
+  
   public getClassPrice(flight: Flight, className: string): number {
     const key = className as 'economy' | 'business' | 'firstclass';
     return flight.prices[key] || 0;
   }
 
-  // --- LOGICA POSTI ---
-
-  public generateSeats(flight: Flight): string[] {
-    const seatsConfig = flight.airplane?.capacity?.[this.selectedClass as 'economy' | 'business' | 'firstclass'];
-    if (!seatsConfig || !seatsConfig.rows || !seatsConfig.seatLetters) {
-      return [];
-    }
-    const seats: string[] = [];
-    const letters = seatsConfig.seatLetters.split('');
-    
-    for (let row = 1; row <= seatsConfig.rows; row++) {
-      for (let letter of letters) {
-        seats.push(`${row}${letter}`);
-      }
-    }
-    return seats;
-  }
-
-  public getColumns(flight: Flight): number {
-    const seatsConfig = flight.airplane?.capacity?.[this.selectedClass as 'economy' | 'business' | 'firstclass'];
-    if (!seatsConfig || !seatsConfig.seatsPerRow) {
-      return 0;
-    }
-    return seatsConfig.seatsPerRow || 0;
-  }
-
-  public seatsGap(index: number): boolean {
-    const flight = this.firstFlight;
-    if (!flight) return false;
-
-    const seatsConfig = flight.airplane?.capacity?.[this.selectedClass as 'economy' | 'business' | 'firstclass'];
-    if (!seatsConfig || !seatsConfig.seatsPerRow) {
-      return false;
-    }
-    const seatsPerRow = seatsConfig.seatsPerRow;
-    // Aggiungi uno spazio dopo la metà delle colonne
-    return (index + 1) % (seatsPerRow / 2) === 0;
-  }
-    
-  /// SEDILI 
 
   // Verifica se il posto è libero controllando l'array di oggetti
   public isSeatAvailable(seat: string, flightClass: string, flightNumber: 'first' | 'second'): boolean {
@@ -274,6 +234,9 @@ export class BookingCreationComponent implements OnInit {
       this.bookingForm.markAllAsTouched();
       return;
     }
+    const userId = this.http.get_id();
+    console.log('User ID:', userId);
+
     const bookingData = this.bookingForm.value;
     console.log('Invio:', bookingData);
     const t1: ticketInfo = {
@@ -301,7 +264,7 @@ export class BookingCreationComponent implements OnInit {
     this.bookingService.createTicket(t1, t2).subscribe({
       next: (response) => {
         console.log('Risposta dal server:', response);
-        this.router.navigate(['/booking-prenotation']);
+        this.router.navigate(['/bookingPrenotation']);
       },
       error: (error) => {
         console.error('Errore durante la creazione del biglietto:', error);

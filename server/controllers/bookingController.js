@@ -6,8 +6,6 @@ const Flight = require('../models/Flight');
 const { seatReleaser, createTicketHelper } = require('./helperController');
 
 exports.createBooking = async (req, res) => {  
-    let firstTicket = null;
-    let secondTicket = null;
     try{
          if(req.auth.role !== 'passenger'){ 
             return res.status(400).json({ error: true, errormessage: "Solo i passeggeri possono creare prenotazioni" });
@@ -121,10 +119,15 @@ exports.getBooking = async (req, res) => {
                 populate: {
                     path: 'flight',
                     select: 'flightNumber departureTime arrivalTime', // Seleziona solo info essenziali
-                    populate: {
-                        path: 'route',
-                        populate: { path: 'departureAirport arrivalAirport' }
-                    }
+                    populate: [
+                        {
+                            path: 'route',
+                            populate: { path: 'departureAirport arrivalAirport' }
+                        },
+                        {
+                            path: 'airplane' //per visualizzare griglia posti
+                        }
+                    ]
                 }
             })
             .populate('user', 'name surname email');

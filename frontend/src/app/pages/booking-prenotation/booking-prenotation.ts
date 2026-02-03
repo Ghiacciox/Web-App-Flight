@@ -4,23 +4,25 @@ import { ReactiveFormsModule, FormBuilder} from '@angular/forms';
 import { Router, RouterModule, ActivatedRoute} from '@angular/router';
 import { HttpService } from '../../services/http.service';
 import { BookingService, Booking } from '../../services/booking.service';
+import { BehaviorSubject } from 'rxjs';
 
 @Component({
   selector: 'app-booking-prenotation',
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule, RouterModule],
-  providers: [ HttpService, BookingService ],
+  providers: [],
   templateUrl: './booking-prenotation.html',
   styleUrl: './booking-prenotation.css',
 })
 
 export class BookingPrenotationComponent implements OnInit {
   
-  mytitles: Booking[] = [];
+  MyTitles$ = new BehaviorSubject<any[]>([]);
+  //stesso discorso di flightsearch per prendere i parametri e fare la chiamata al service
 
     constructor(
     private router: Router,
-    private http: HttpService,
+    public http: HttpService, //publico che ci servono i metodi
     private fb: FormBuilder,
     private route: ActivatedRoute,
     private bookingSerice: BookingService
@@ -30,8 +32,10 @@ export class BookingPrenotationComponent implements OnInit {
      const userId = this.http.get_id();
      this.bookingSerice.getPrenotations(userId).subscribe({
       next: (response) => {
-        this.mytitles = response.result ? response.result : []; // se c'è un risultato, altrimenti array vuoto
-        console.log('Prenotazioni ricevute:', this.mytitles);
+        console.log('Risposta dal server:', response);
+        const data = Array.isArray(response) ? response : (response.result || []);
+        this.MyTitles$.next(data);
+        console.log('Prenotazioni ricevute:', this.MyTitles$.value);
       },
       error: (error) => {
         console.error('Errore nel recupero delle prenotazioni:', error);
@@ -41,8 +45,11 @@ export class BookingPrenotationComponent implements OnInit {
   }
   
   
-goToDetail(bookingId: string): void {
-  this.router.navigate(['/booking-detail', bookingId]);
-}
+  goToDetail(prenotation: Booking): void {
+    this.bookingSerice.setSelectedBooking(prenotation);
+    this.router.navigate(['/bookingDetail']);
+  }
+
+  
   
 }

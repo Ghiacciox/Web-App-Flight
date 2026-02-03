@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient,  HttpParams } from '@angular/common/http';
-import { BehaviorSubject, Observable } from 'rxjs';
-import { Flight, Result, Seats } from './search.service';
+import { Observable } from 'rxjs';
+import { Flight, Result} from './search.service';
 import { HttpService } from './http.service';
 
 
@@ -15,7 +15,7 @@ export interface BookingUser {
 export interface Ticket {
   _id: string;
   seat: string;
-  flightClass: 'economy' | 'business' | 'firstclass';
+  class: 'economy' | 'business' | 'firstclass';
   price: number;
   flight: Flight;
   extras: {
@@ -71,6 +71,7 @@ export class BookingService {
   ) { }
 
   public selectedFlightSource: Result | null = null;
+  public selectedBookingSource: Booking | null = null;
 
   
 
@@ -92,6 +93,10 @@ export class BookingService {
 
   setSelectedFlight(flight: Result) {
     this.selectedFlightSource = flight;
+  }
+
+  setSelectedBooking(prenotation: Booking) {
+    this.selectedBookingSource= prenotation;
   }
 
   getPrenotations(userId: string, bookingId?: string, dateFrom?: Date, dateTo?: Date): Observable<ServerResponse> {
@@ -116,5 +121,42 @@ export class BookingService {
       this.url + '/'+ bookingId, 
       { headers: { 'Authorization' : 'Bearer ' + this.httpServices.get_token() } });
   }
+
+  public generateSeats(flight: Flight, className: string): string[] {
+    const seatsConfig = flight.airplane?.capacity?.[className as 'economy' | 'business' | 'firstclass'];
+    if (!seatsConfig || !seatsConfig.rows || !seatsConfig.seatLetters) {
+      return [];
+    }
+    const seats: string[] = [];
+    const letters = seatsConfig.seatLetters.split('');
+    
+    for (let row = 1; row <= seatsConfig.rows; row++) {
+      for (let letter of letters) {
+        seats.push(`${row}${letter}`);
+      }
+    }
+    return seats;
+  }
+
+  public getColumns(flight: Flight, className:string): number {
+    const seatsConfig = flight.airplane?.capacity?.[className as 'economy' | 'business' | 'firstclass'];
+    if (!seatsConfig || !seatsConfig.seatsPerRow) {
+      return 0;
+    }
+    return seatsConfig.seatsPerRow || 0;
+  }
+
+  public seatsGap(index: number, flight: Flight, className: string): boolean {
+    if (!flight) return false;
+
+    const seatsConfig = flight.airplane?.capacity?.[className as 'economy' | 'business' | 'firstclass'];
+    if (!seatsConfig || !seatsConfig.seatsPerRow) {
+      return false;
+    }
+    const seatsPerRow = seatsConfig.seatsPerRow;
+    // Aggiungi uno spazio dopo la metà delle colonne
+    return (index + 1) % (seatsPerRow / 2) === 0;
+  }
+    
      
 }
