@@ -1,10 +1,10 @@
 const Airplanes = require('../models/Airplanes');
 
-// GET: Lista di tutti gli aeroporti (Pubblico)
 exports.getAirplane = async (req, res) => {
     try {
         const {airplaneModel} = req.query; 
         // informazioni visibili nell' url: /api/airplanes?airplaneModel=Airbus
+        console.log("DEBUG QUERY PARAMS:", req.query);
 
         if(airplaneModel){
             let airplanes = await Airplanes.find({ airplaneModel: { $regex: airplaneModel, $options: 'i'} });
@@ -13,7 +13,7 @@ exports.getAirplane = async (req, res) => {
         //non ha senso tornare tutti gli aerei
         return res.status(200).json({ message: "nessun filtro applicato!", airplanes : [] });
     } catch (err) {
-        res.status(500).json({ error: true, errormessage: "Errore recupero aeroporti" });
+        res.status(500).json({ error: true, errormessage: "Errore recupero aerei" });
     }
 };
 
@@ -34,6 +34,7 @@ exports.createAirplane = async (req, res) => {
             capacity: capacity
         });
         console.log(" 4.creato nuovo aereo, pronto per salvare");
+        console.log(newAirplane);
         await newAirplane.save();
         console.log(" 5.aereo salvato nel db");
         return res.status(200).json({ message: "Nuovo aereo creato!"});

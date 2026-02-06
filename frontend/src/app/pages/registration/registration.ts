@@ -106,7 +106,8 @@ utenteeee
             return;
           }
           console.log('Registrazione successful:', response.token);
-          this.router.navigate(['/home']);
+          //this.router.navigate(['/home']);
+          window.location.href = '/home';
         },
         error: (error) => {
           console.error('Registrazione failed:', error);

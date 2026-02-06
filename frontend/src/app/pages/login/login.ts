@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
 import { HttpService } from '../../services/http.service';
+import { BehaviorSubject } from 'rxjs';
 
 
 @Component({
@@ -15,9 +16,14 @@ import { HttpService } from '../../services/http.service';
 })
 
 export class LoginComponent {
+
   loginForm: FormGroup;
 
-  constructor(private fb: FormBuilder, private httpService: HttpService, private router: Router) {
+  constructor(
+    private fb: FormBuilder,
+    public httpService: HttpService,
+    private router: Router
+    ) {
     this.loginForm = this.fb.group({
       email: ['', [Validators.required, Validators.email]],
       password: ['', [Validators.required, Validators.minLength(6)]]
@@ -37,7 +43,8 @@ export class LoginComponent {
             return;
           }
           console.log('Login successful:', response.token);
-          this.router.navigate(['/home']);
+          //this.router.navigate(['/home']);
+          window.location.href = '/home';
         },
         error: (error) => {
           console.error('Login failed:', error);

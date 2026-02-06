@@ -44,7 +44,7 @@ export interface User {
 export class HttpService {
 
   private token: string = '';
-  public url = 'http://localhost:3005/api/auth'; //webserver backend
+  private readonly url = 'http://localhost:3005/api/auth'; //webserver backend
 
   constructor( private http: HttpClient ) {
     //appena parte necessita di un client che è importato da node
@@ -79,13 +79,6 @@ export class HttpService {
       return true;
     }
   }
-
-  isAuthenticated(): boolean {
-    if (!this.token) 
-      return false;
-    return !this.isTokenExpired(this.token);
-  }
-
 
   //prende mail e pssw li unisce con : e le codifica in base64
   login( mail: string, password: string, remember: boolean ): Observable<ReceivedToken> {
@@ -152,36 +145,98 @@ export class HttpService {
     return this.http.post( this.url + '/register', user, options );
   }
 
+  /*
+  name?: string;
+  surname?: string;
+  birthdate?: Date | string;
+  phonenumber?: string;
+  paymentAddress?: string;
+
+  // Campi obbligatori se role === 'airline'
+  company?: string;
+  */
+
   get_token() {
     return this.token;
   }
+
+  private getDecodedToken(): any {
+  if (!this.token) return null;
+  try {
+   const decoded = jwtDecode(this.token);
+    //console.log("Contenuto del Token decodificato:", decoded); // <--- AGGIUNGI QUESTO
+    return decoded;
+  } catch (error) {
+    console.error("Token non valido", error);
+    return null;
+  }
+}
   
-  get_email() {
-    return (jwtDecode(this.token) as TokenData).email;
+  get_email() : string {
+    return (this.getDecodedToken() as TokenData).email;
   }
 
   get_id() {
-    return (jwtDecode(this.token) as TokenData).id;
+    return (this.getDecodedToken() as TokenData).id;
+  }
+
+
+  get_name() : string {
+    return (this.getDecodedToken() as any)?.name || 'Utente';
+  }
+
+  get_surname() {
+    return (this.getDecodedToken() as any)?.surname || 'Cognome';
+  }
+
+  get_birthdate(): Date | null {
+    return (this.getDecodedToken() as any)?.birthdate || null;
+  }
+
+  get_phonenumber() : string {
+    return (this.getDecodedToken() as any)?.phonenumber || 'Numero di telefono non disponibile';
+  }
+
+  get_paymentAddress() : string {
+    return (this.getDecodedToken() as any)?.paymentAddress || 'Indirizzo di pagamento non disponibile';
+  }
+
+  get_company() : string {
+    return (this.getDecodedToken() as any)?.company || 'Nome Azienda non disponibile';
+  }
+
+  get_role() {
+    return (this.getDecodedToken() as TokenData).role;
   }
 
   //admin' | 'passenger' | 'airline'
 
+  isAuthenticated(): boolean {
+    if (!this.token) 
+      return false;
+    return !this.isTokenExpired(this.token);
+  }
+
+
   is_admin(): boolean {
-    const roles = (jwtDecode(this.token) as TokenData).role;
+    if (!this.token) return false;
+    const roles = this.get_role();
     if ( roles === 'admin' ) 
       return true;
     return false;
 }
 
   is_passenger(): boolean {
-    const roles = (jwtDecode(this.token) as TokenData).role;
+    if (!this.token) return false;
+    const roles = this.get_role();
     if ( roles === 'passenger' ) 
       return true;
     return false;
   }
 
   is_airline(): boolean {
-    const roles = (jwtDecode(this.token) as TokenData).role;
+    if (!this.token) return false;
+    const roles = this.get_role();
     if ( roles === 'airline' )
         return true;
     return false;

@@ -33,7 +33,7 @@ const airplaneSchema = new mongoose.Schema({
         unique: true
     },
 
-     capacity : {
+    capacity : {
         economy : seats,
         business : seats,
         firstclass : seats

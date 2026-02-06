@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { bookedSeats, Flight, SearchService, Seats } from '../../services/search.service';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { Router, RouterModule, ActivatedRoute} from '@angular/router';
+import { Router, RouterModule } from '@angular/router';
 import { HttpService } from '../../services/http.service';
 import { BookingService, ticketInfo } from '../../services/booking.service';
 
@@ -46,10 +46,8 @@ export class BookingCreationComponent implements OnInit {
 
   constructor(
     private router: Router,
-    private searchService: SearchService,
     public http: HttpService,
     private fb: FormBuilder,
-    private route: ActivatedRoute,
     public bookingService: BookingService
   ) {}
 

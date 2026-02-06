@@ -9,4 +9,5 @@ router.post('/',checkJwt, airportController.createAirport);
 
 //cerco con get aerei metodo pubblico
 router.get('/', airportController.getAirports)
+
 module.exports = router;

@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient,  HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { Flight, Result} from './search.service';
+import { Airplane, Flight, Result} from './search.service';
 import { HttpService } from './http.service';
 
 
@@ -63,7 +63,7 @@ interface ServerResponse {
 })
 export class BookingService {
 
-  public url = 'http://localhost:3005/api/bookings'; //webserver backend
+  private readonly url = 'http://localhost:3005/api/bookings'; //webserver backend
 
   constructor(
     private http: HttpClient,
@@ -122,8 +122,8 @@ export class BookingService {
       { headers: { 'Authorization' : 'Bearer ' + this.httpServices.get_token() } });
   }
 
-  public generateSeats(flight: Flight, className: string): string[] {
-    const seatsConfig = flight.airplane?.capacity?.[className as 'economy' | 'business' | 'firstclass'];
+  public generateSeats(airplane: Airplane, className: string): string[] {
+    const seatsConfig = airplane?.capacity?.[className as 'economy' | 'business' | 'firstclass'];
     if (!seatsConfig || !seatsConfig.rows || !seatsConfig.seatLetters) {
       return [];
     }
@@ -138,18 +138,18 @@ export class BookingService {
     return seats;
   }
 
-  public getColumns(flight: Flight, className:string): number {
-    const seatsConfig = flight.airplane?.capacity?.[className as 'economy' | 'business' | 'firstclass'];
+  public getColumns(airplane: Airplane, className:string): number {
+    const seatsConfig = airplane?.capacity?.[className as 'economy' | 'business' | 'firstclass'];
     if (!seatsConfig || !seatsConfig.seatsPerRow) {
       return 0;
     }
     return seatsConfig.seatsPerRow || 0;
   }
 
-  public seatsGap(index: number, flight: Flight, className: string): boolean {
-    if (!flight) return false;
+  public seatsGap(index: number, airplane: Airplane, className: string): boolean {
+    if (!airplane) return false;
 
-    const seatsConfig = flight.airplane?.capacity?.[className as 'economy' | 'business' | 'firstclass'];
+    const seatsConfig = airplane?.capacity?.[className as 'economy' | 'business' | 'firstclass'];
     if (!seatsConfig || !seatsConfig.seatsPerRow) {
       return false;
     }

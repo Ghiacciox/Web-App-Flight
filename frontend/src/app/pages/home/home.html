@@ -8,14 +8,23 @@
                 </div>
 
                 <div class="flex items-center space-x-6">
+
+                    <ng-container *ngIf="!this.http.isAuthenticated()">
+                        <a routerLink="/login" class="hover:text-yellow-500 transition-colors"> login</a>
+                    </ng-container>
                     
+                    <ng-container *ngIf="this.http.isAuthenticated() && this.http.is_passenger()">
+                        <a routerLink="/bookingPrenotation" class="over:text-yellow-500 transition-colors"> Prenotazioni</a>
+                    </ng-container>
+
                     <ng-container *ngIf="this.http.isAuthenticated() && this.http.is_passenger()">
                         <a routerLink="/login" class="hover:text-yellow-500 transition-colors"> Profilo</a>
                         <a routerLink="/bookingPrenotation" class="over:text-yellow-500 transition-colors"> Prenotazioni</a>
                     </ng-container>
 
-                    <ng-container *ngIf="!this.http.isAuthenticated()">
-                        <a routerLink="/login" class="over:text-yellow-500 transition-colors"> Accedi</a>
+                    <!--capisco se togliere sec me meglio nel profilo-->
+                    <ng-container *ngIf="this.http.isAuthenticated()">
+                        <a (click)="this.http.logout()" class="hover:text-yellow-500 transition-colors"> logout</a>
                     </ng-container>
                 
                 </div> </div>
@@ -26,7 +35,10 @@
     <!--fine della navbar -->
     
     <div class="flex grow hidden md:flex bg-sky-400 items-end justify-center p-8">
-       <div class="bg-white shadow-lg rounded-md p-6 order-t-4 border-yellow-500">   
+        <div class="bg-white shadow-lg rounded-md p-6 border-yellow-500 border-l-4 min-w-[600px] max-w-6xl flex flex-col justify-center">
+
+        <div *ngIf="!http.is_admin() && !http.is_airline()" class="mb-4">
+        <!-- solo gli utenti possono cercare i voli -->
             <form [formGroup]="searchForm" (ngSubmit)="onSubmit()" class="flex flex-col md:flex-row gap-6">
                 
                 <div class="grid grid-cols-3 gap-6">
@@ -45,7 +57,7 @@
                     <div>
                         <label class="block text-xs font-bold text-gray-500 uppercase mb-1 ml-1">Data di partenza</label>
                         <input id="initialDate" type="date" formControlName="initialDate" 
-                            class="w-full px-4 py-3 rounded-md bg-gray-50 border border-slate-300 focus:bg-white focus:ring-2 focus:ring-sky-500 focus:outline-none transition-all" />
+                            class="w-full px-4 py-3 rounded-md bg-gray-50 border border-slate-300 focus:bg-white focus:ring-2 focus:ring-sky-500 focus:outline-none transition-all font-bold text-gray-500" />
                     </div>
 
                     <div>
@@ -63,7 +75,7 @@
                     <div>
                         <label class="block text-xs font-bold text-gray-500 uppercase mb-1 ml-1">Data di arrivo (Opzionale)</label>
                         <input id="finalDate" type="date" formControlName="finalDate" 
-                            class="w-full px-4 py-3 rounded-md bg-gray-50 border border-slate-300 focus:bg-white focus:ring-2 focus:ring-sky-500 focus:outline-none transition-all" />
+                            class="w-full px-4 py-3 rounded-md bg-gray-50 border border-slate-300 focus:bg-white focus:ring-2 focus:ring-sky-500 focus:outline-none transition-all font-bold text-gray-500" />
                     </div>
                 </div>
 
@@ -72,7 +84,62 @@
                     CERCA VOLI
                 </button>
             </form>
-       </div>
+        </div><!-- fine form di ricerca  per utenti-->
+
+       <div *ngIf="this.http.is_airline()" class="w-full">
+
+            <div class="flex items-center p-4 gap-4">
+                    <span class="bg-green-300 rounded-md w-fit text-md text-sky-600 font-bold px-2 py-0.5 uppercase">Pannello di controllo compagnia aerea</span>   
+                    <div class="text-sky-600 text-xl font-bold py-1 rounded">
+                        <span> → {{ this.http.get_company()}}</span>
+                    </div>
+                </div>
+
+                <div class="bg-sky-300 shadow-2xl rounded-md p-4 mb-6"> 
+                    <div class="grid grid-cols-5 p-4 gap-4">
+                        <div>
+                            <label class="block text-xs font-bold text-sky-700 uppercase mb-1">Email referente</label>
+                            <div class="text-lg font-bold text-black leading-none">{{ this.http.get_email()}}</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-5 p-4 gap-4">   
+                    <button type="button" 
+                        routerLink="/airline-Routes"
+                        class="p-4 rounded-lg border border-gray-200 hover:border-sky-300 transition-all text-left flex justify-between items-center group block text-xs font-bold text-sky-600  uppercase mb-1" >
+                        Aggiungi tratta 🗺️
+                    </button>
+
+                    <button type="button" 
+                       routerLink="/airline-Airplanes"
+                        class="p-4 rounded-lg border border-gray-200 hover:border-sky-300 transition-all text-left flex justify-between items-center group block text-xs font-bold text-sky-600  uppercase mb-1" >
+                        Aggiungi Veicolo ✈️
+                    </button>
+
+                    <button type="button" 
+                       routerLink="/addFlight"
+                        class="p-4 rounded-lg border border-gray-200 hover:border-sky-300 transition-all text-left flex justify-between items-center group block text-xs font-bold text-sky-600  uppercase mb-1" >
+                        Aggiungi Volo 🛫
+                    </button>
+
+                    <button type="button"
+                        routerLink="/manageTickets"
+                        class="p-4 rounded-lg border border-gray-200 hover:border-sky-300 transition-all text-left flex justify-between items-center group block text-xs font-bold text-sky-600  uppercase mb-1" >
+                        Gestisci Biglietti 🎟️
+                    </button>
+                
+                    <button type="button"
+                            routerLink="/AirlineStatistics"
+                            class="p-4 rounded-lg border border-gray-200 hover:border-sky-300 transition-all text-left flex justify-between items-center group block text-xs font-bold text-sky-600  uppercase mb-1" >
+                            Vedi Statistiche 📊
+                        </button>
+                    </div>
+                </div>
+        </div>
+
+        <!--fine pannello compagnia aerea-->
+        
     </div> 
 </div>
 

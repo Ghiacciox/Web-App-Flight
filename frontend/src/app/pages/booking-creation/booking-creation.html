@@ -110,15 +110,15 @@
 
                 <div class="bg-sky-300 p-6 rounded-lg">
     
-                    <ng-container *ngIf="firstFlight && this.bookingService.generateSeats(firstFlight, selectedClass) as allSeats">
+                    <ng-container *ngIf="firstFlight && this.bookingService.generateSeats(firstFlight.airplane, selectedClass) as allSeats">
                         
                         <div class="grid gap-3 justify-center items-center" 
-                        [style.grid-template-columns]="'repeat(' + bookingService.getColumns(firstFlight, selectedClass) + ', min-content)'">
+                        [style.grid-template-columns]="'repeat(' + bookingService.getColumns(firstFlight.airplane, selectedClass) + ', min-content)'">
                             <div *ngFor="let seat of allSeats let i = index">
                                 <button type="button" 
                                         (click)="selectSeat(seat,selectedClass,'first')"
                                         [disabled]="!isSeatAvailable(seat, selectedClass, 'first')"
-                                        [style.margin-right]="bookingService.seatsGap(i, firstFlight, selectedClass) ? '40px' : '0'"
+                                        [style.margin-right]="bookingService.seatsGap(i, firstFlight.airplane, selectedClass) ? '40px' : '0'"
                                         [ngClass]="{
                                             'bg-yellow-400 text-white border-yellow-500 transform scale-110 shadow-lg': isSeatSelected(seat, 'first'),
                                             'bg-red-200 text-red-400 cursor-not-allowed': !isSeatAvailable(seat, selectedClass, 'first'),
@@ -217,15 +217,15 @@
 
                 <div class="bg-sky-300 p-6 rounded-lg">
     
-                    <ng-container *ngIf="secondFlight && this.bookingService.generateSeats(secondFlight, selectedClass) as allSeats">
+                    <ng-container *ngIf="secondFlight && this.bookingService.generateSeats(secondFlight.airplane, selectedClass) as allSeats">
                         
                         <div class="grid gap-3 justify-center items-center" 
-                        [style.grid-template-columns]="'repeat(' + bookingService.getColumns(secondFlight, selectedClass) + ', min-content)'">
+                        [style.grid-template-columns]="'repeat(' + bookingService.getColumns(secondFlight.airplane, selectedClass) + ', min-content)'">
                             <div *ngFor="let seat of allSeats let i = index">
                                 <button type="button" 
                                         (click)="selectSeat(seat, selectedClass, 'second')"
                                         [disabled]="!isSeatAvailable(seat, selectedClass, 'second')"
-                                        [style.margin-right]="bookingService.seatsGap(i, secondFlight, selectedClass) ? '40px' : '0'"
+                                        [style.margin-right]="bookingService.seatsGap(i, secondFlight.airplane, selectedClass) ? '40px' : '0'"
                                         [ngClass]="{
                                             'bg-yellow-400 text-white border-yellow-500 transform scale-110 shadow-lg': isSeatSelected(seat, 'second'),
                                             'bg-red-200 text-red-400 cursor-not-allowed': !isSeatAvailable(seat, selectedClass, 'second'),

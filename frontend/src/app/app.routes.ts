@@ -6,6 +6,8 @@ import { FlightsearchComponent } from './pages/flightsearch/flightsearch';
 import { BookingCreationComponent } from './pages/booking-creation/booking-creation';
 import { BookingPrenotationComponent } from './pages/booking-prenotation/booking-prenotation';
 import { BookingDetailComponent } from './pages/booking-detail/booking-detail';
+import { AirlineRoutesComponent } from './pages/airline-routes/airline-routes'; 
+import { AirlineAirplanesComponent } from './pages/airline-airplanes/airline-airplanes';
 
 
 //qua ho tutte le rotte posso navigare in base 
@@ -18,5 +20,7 @@ export const routes: Routes = [
     { path: 'results', component: FlightsearchComponent },
     { path: 'bookingCreation', component: BookingCreationComponent },
     { path: 'bookingPrenotation', component: BookingPrenotationComponent },
-    { path: 'bookingDetail', component: BookingDetailComponent }
+    { path: 'bookingDetail', component: BookingDetailComponent },
+    { path: 'airline-Routes', component: AirlineRoutesComponent },
+    { path: 'airline-Airplanes', component: AirlineAirplanesComponent }
 ];

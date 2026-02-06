@@ -25,7 +25,7 @@ const resolveAirportId = async (searchString) => {
 };
 
 
-// Helper per trovare rotte in base a codici aeroporti
+// Helper per trovare rotte in base a codici aeroporti E NOMI
 const findRoutesHelper = async (from, to) => {
     try{
          let filter = {};   

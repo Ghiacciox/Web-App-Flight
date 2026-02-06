@@ -6,6 +6,9 @@ const helper= require('./helperController');
 // Può essere usato così: GET /api/routes?from=FCO&to=JFK
 exports.getRoutes = async (req, res) => {
     try {
+         if (req.auth.role !== 'airline' && req.auth.role !== 'admin') {
+        return res.status(403).json({ error: true, errormessage: "Solo le compagnie aeree possono creare rotte" });
+    }
         const { from, to,} = req.query;
         const routes = await helper.findRoutesHelper(from, to);
         res.status(200).json(routes);

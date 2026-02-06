@@ -36,7 +36,7 @@
                 <div *ngIf="MyTitle.tickets[0]" class="w-full max-w-7xl mx-auto flex items-center gap-4">
                     <span class="bg-sky-300 rounded-md w-fit text-md text-sky-600 font-bold px-2 py-0.5 uppercase">Tratta 1</span>   
                     <div class="text-sky-600 text-xl font-bold py-1 rounded">
-                            <span>{{ MyTitle.tickets[0].flight?.route?.departureAirport?.city }}</span> ➝ <span>{{ MyTitle.tickets[0].flight?.route?.arrivalAirport?.city }}</span>
+                            <span>{{ MyTitle.tickets[0].flight.route.departureAirport.city }}</span> ➝ <span>{{ MyTitle.tickets[0].flight.route.arrivalAirport.city }}</span>
                     </div>
 
                     <span class="rounded-md text-sm ml-auto font-bold px-2 py-0.5 uppercase"
@@ -54,15 +54,15 @@
                     <div class="grid grid-cols-3 p-4 gap-4">
                         <div>
                             <label class="block text-xs font-bold text-sky-700 uppercase mb-1">compagnia aerea</label>
-                            <div class="text-lg font-bold text-black leading-none">{{ MyTitle.tickets[0].flight?.company?.company || 'Airline' }}</div>
+                            <div class="text-lg font-bold text-black leading-none">{{ MyTitle.tickets[0].flight.company?.company || 'Airline' }}</div>
                         </div>
                         <div>
                             <label class="block text-xs font-bold text-sky-700  uppercase mb-1">numero di volo</label>
-                            <div class="text-lg font-bold text-black leading-none">{{ MyTitle.tickets[0].flight?.flightNumber}}</div>
+                            <div class="text-lg font-bold text-black leading-none">{{ MyTitle.tickets[0].flight.flightNumber}}</div>
                         </div>
                         <div>
                             <label class="block text-xs font-bold text-sky-700  uppercase mb-1">Orario</label>
-                            <div class="text-lg font-bold text-black leading-none">{{ MyTitle.tickets[0].flight?.departureTime | date:'HH:mm' }} - {{ MyTitle.tickets[0].flight?.arrivalTime | date:'HH:mm' }}</div>
+                            <div class="text-lg font-bold text-black leading-none">{{ MyTitle.tickets[0].flight.departureTime | date:'HH:mm' }} - {{ MyTitle.tickets[0].flight.arrivalTime | date:'HH:mm' }}</div>
                         </div>
                     </div>
                 </div>
@@ -96,25 +96,25 @@
                 <div>
                     <div class="grid grid-cols-3 p-4 gap-4">
                         <div 
-                            [class.bg-yellow-400]="MyTitle.tickets[0].extras?.legroom"
-                            [class.ring-sky-500]="MyTitle.tickets[0].extras?.legroom"
-                            [class.opacity-50]="!MyTitle.tickets[0].extras?.legroom"
+                            [class.bg-yellow-400]="MyTitle.tickets[0].extras.legroom"
+                            [class.ring-sky-500]="MyTitle.tickets[0].extras.legroom"
+                            [class.opacity-50]="!MyTitle.tickets[0].extras.legroom"
                             class="p-4 rounded-lg border border-gray-200 text-left flex justify-between items-center group block text-xs font-bold text-sky-600 uppercase mb-1 pointer-events-none">
                             Posto extra gambe
                         </div>
 
                         <div 
-                            [class.bg-yellow-400]="MyTitle.tickets[0].extras?.baggage"
-                            [class.ring-sky-500]="MyTitle.tickets[0].extras?.baggage"
-                            [class.opacity-50]="!MyTitle.tickets[0].extras?.baggage"
+                            [class.bg-yellow-400]="MyTitle.tickets[0].extras.baggage"
+                            [class.ring-sky-500]="MyTitle.tickets[0].extras.baggage"
+                            [class.opacity-50]="!MyTitle.tickets[0].extras.baggage"
                             class="p-4 rounded-lg border border-gray-200 text-left flex justify-between items-center group block text-xs font-bold text-sky-600 uppercase mb-1 pointer-events-none">
                             Bagaglio extra
                         </div>
 
                         <div 
-                            [class.bg-yellow-400]="MyTitle.tickets[0].extras?.priorityBoarding"
-                            [class.ring-sky-500]="MyTitle.tickets[0].extras?.priorityBoarding"
-                            [class.opacity-50]="!MyTitle.tickets[0].extras?.priorityBoarding"
+                            [class.bg-yellow-400]="MyTitle.tickets[0].extras.priorityBoarding"
+                            [class.ring-sky-500]="MyTitle.tickets[0].extras.priorityBoarding"
+                            [class.opacity-50]="!MyTitle.tickets[0].extras.priorityBoarding"
                             class="p-4 rounded-lg border border-gray-200 text-left flex justify-between items-center group block text-xs font-bold text-sky-600 uppercase mb-1 pointer-events-none">
                             Imbaco prioritario
                         </div>
@@ -124,13 +124,13 @@
 
                 <div class="bg-sky-300 p-6 rounded-lg">
     
-                    <ng-container *ngIf="MyTitle.tickets[0] && this.bookingService.generateSeats(MyTitle.tickets[0].flight, MyTitle.tickets[0].class) as allSeats">
+                    <ng-container *ngIf="MyTitle.tickets[0] && this.bookingService.generateSeats(MyTitle.tickets[0].flight.airplane, MyTitle.tickets[0].class) as allSeats">
                         
                         <div class="grid gap-3 justify-center items-center" 
-                        [style.grid-template-columns]="'repeat(' + this.bookingService.getColumns(MyTitle.tickets[0].flight, MyTitle.tickets[0].class) + ', min-content)'">
+                        [style.grid-template-columns]="'repeat(' + this.bookingService.getColumns(MyTitle.tickets[0].flight.airplane, MyTitle.tickets[0].class) + ', min-content)'">
                             <div *ngFor="let seat of allSeats let i = index">
                                <div 
-                                    [style.margin-right]="bookingService.seatsGap(i, MyTitle.tickets[0].flight, MyTitle.tickets[0].class) ? '40px' : '0'"
+                                    [style.margin-right]="bookingService.seatsGap(i, MyTitle.tickets[0].flight.airplane, MyTitle.tickets[0].class) ? '40px' : '0'"
                                     [ngClass]="{
                                         'bg-yellow-400 text-white border-yellow-500 scale-125 shadow-lg z-10': seat === MyTitle.tickets[0].seat,
                                         'bg-gray-100 text-gray-300 border-gray-200': seat !== MyTitle.tickets[0].seat
@@ -149,15 +149,15 @@
             </div>
         
 
-        <div *ngIf="MyTitle.tickets?.[1]" class="w-full max-w-7xl mx-auto">
+        <div *ngIf="MyTitle.tickets[1]" class="w-full max-w-7xl mx-auto">
             <div class="bg-white shadow-lg border border-solid border-yellow-500 border-l-4  rounded-md p-4 mb-6 ">
                 <div class="flex items-center p-4 gap-4">
                     <span class="bg-sky-300 rounded-md w-fit text-md text-sky-600 font-bold px-2 py-0.5 uppercase">Tratta 2</span>   
                     <div class="text-sky-600 text-xl font-bold py-1 rounded">
                              <div class="text-sky-600 text-xl font-bold py-1 rounded">
-                                <span>{{ MyTitle.tickets[1].flight?.route?.departureAirport?.city }}</span> 
+                                <span>{{ MyTitle.tickets[1].flight.route.departureAirport.city }}</span> 
                                 ➝ 
-                                <span>{{ MyTitle.tickets[1].flight?.route?.arrivalAirport?.city }}</span>
+                                <span>{{ MyTitle.tickets[1].flight.route.arrivalAirport.city }}</span>
                             </div>
                     </div>
                 </div>
@@ -166,15 +166,15 @@
                     <div class="grid grid-cols-3 p-4 gap-4">
                         <div>
                             <label class="block text-xs font-bold text-sky-700 uppercase mb-1">compagnia aerea</label>
-                            <div class="text-lg font-bold text-black leading-none">{{ MyTitle.tickets[1].flight?.company?.company || 'Airline' }}</div>
+                            <div class="text-lg font-bold text-black leading-none">{{ MyTitle.tickets[1].flight.company?.company || 'Airline' }}</div>
                         </div>
                         <div>
                             <label class="block text-xs font-bold text-sky-700  uppercase mb-1">numero di volo</label>
-                            <div class="text-lg font-bold text-black leading-none">{{ MyTitle.tickets[1].flight?.flightNumber }}</div>
+                            <div class="text-lg font-bold text-black leading-none">{{ MyTitle.tickets[1].flight.flightNumber }}</div>
                         </div>
                         <div>
                             <label class="block text-xs font-bold text-sky-700  uppercase mb-1">Orario</label>
-                            <div class="text-lg font-bold text-black leading-none">{{ MyTitle.tickets[1].flight?.departureTime | date:'HH:mm' }} - {{ MyTitle.tickets[1].flight?.arrivalTime | date:'HH:mm' }} </div>
+                            <div class="text-lg font-bold text-black leading-none">{{ MyTitle.tickets[1].flight.departureTime | date:'HH:mm' }} - {{ MyTitle.tickets[1].flight.arrivalTime | date:'HH:mm' }} </div>
                         </div>
                     </div>
                 </div>
@@ -209,25 +209,25 @@
                 <div>
                     <div class="grid grid-cols-3 p-4 gap-4">   
                          <div 
-                            [class.bg-yellow-400]="MyTitle.tickets[1].extras?.legroom"
-                            [class.ring-sky-500]="MyTitle.tickets[1].extras?.legroom"
-                            [class.opacity-50]="!MyTitle.tickets[1].extras?.legroom"
+                            [class.bg-yellow-400]="MyTitle.tickets[1].extras.legroom"
+                            [class.ring-sky-500]="MyTitle.tickets[1].extras.legroom"
+                            [class.opacity-50]="!MyTitle.tickets[1].extras.legroom"
                             class="p-4 rounded-lg border border-gray-200 text-left flex justify-between items-center group block text-xs font-bold text-sky-600 uppercase mb-1 pointer-events-none">
                             Posto extra gambe
                         </div>
 
                         <div 
-                            [class.bg-yellow-400]="MyTitle.tickets[1].extras?.baggage"
-                            [class.ring-sky-500]="MyTitle.tickets[1].extras?.baggage"
-                            [class.opacity-50]="!MyTitle.tickets[1].extras?.baggage"
+                            [class.bg-yellow-400]="MyTitle.tickets[1].extras.baggage"
+                            [class.ring-sky-500]="MyTitle.tickets[1].extras.baggage"
+                            [class.opacity-50]="!MyTitle.tickets[1].extras.baggage"
                             class="p-4 rounded-lg border border-gray-200 text-left flex justify-between items-center group block text-xs font-bold text-sky-600 uppercase mb-1 pointer-events-none">
                             Bagaglio extra
                         </div>
 
                         <div 
-                            [class.bg-yellow-400]="MyTitle.tickets[1].extras?.priorityBoarding"
-                            [class.ring-sky-500]="MyTitle.tickets[1].extras?.priorityBoarding"
-                            [class.opacity-50]="!MyTitle.tickets[1].extras?.priorityBoarding"
+                            [class.bg-yellow-400]="MyTitle.tickets[1].extras.priorityBoarding"
+                            [class.ring-sky-500]="MyTitle.tickets[1].extras.priorityBoarding"
+                            [class.opacity-50]="!MyTitle.tickets[1].extras.priorityBoarding"
                             class="p-4 rounded-lg border border-gray-200 text-left flex justify-between items-center group block text-xs font-bold text-sky-600 uppercase mb-1 pointer-events-none">
                             Imbaco prioritario
                         </div>
@@ -236,13 +236,13 @@
 
                 <div class="bg-sky-300 p-6 rounded-lg">
     
-                    <ng-container *ngIf="MyTitle.tickets[1] && this.bookingService.generateSeats(MyTitle.tickets[1].flight, MyTitle.tickets[1].class) as allSeats">
+                    <ng-container *ngIf="MyTitle.tickets[1] && this.bookingService.generateSeats(MyTitle.tickets[1].flight.airplane, MyTitle.tickets[1].class) as allSeats">
                         
                         <div class="grid gap-3 justify-center items-center" 
-                        [style.grid-template-columns]="'repeat(' + this.bookingService.getColumns(MyTitle.tickets[1].flight, MyTitle.tickets[1].class) + ', min-content)'">
+                        [style.grid-template-columns]="'repeat(' + this.bookingService.getColumns(MyTitle.tickets[1].flight.airplane, MyTitle.tickets[1].class) + ', min-content)'">
                             <div *ngFor="let seat of allSeats let i = index">
                                <div 
-                                    [style.margin-right]="bookingService.seatsGap(i, MyTitle.tickets[1].flight, MyTitle.tickets[1].class) ? '40px' : '0'"
+                                    [style.margin-right]="bookingService.seatsGap(i, MyTitle.tickets[1].flight.airplane, MyTitle.tickets[1].class) ? '40px' : '0'"
                                     [ngClass]="{
                                         'bg-yellow-400 text-white border-yellow-500 scale-125 shadow-lg z-10': seat === MyTitle.tickets[1].seat,
                                         'bg-gray-100 text-gray-300 border-gray-200': seat !== MyTitle.tickets[1].seat

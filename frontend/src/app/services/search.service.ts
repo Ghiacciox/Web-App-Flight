@@ -30,7 +30,7 @@ export interface Airport {
 // Struttura della Rotta (dal file Routes.js)
 export interface Route {
   _id: string;
-  departureAirport: Airport; // Qui ci sarà l'oggetto completo, non solo l'ID
+  departureAirport: Airport; 
   arrivalAirport: Airport;
   airlineId?: string; 
 }
@@ -106,7 +106,7 @@ export interface Flight {
 @Injectable() //può essere injectata in altri componenti
 export class SearchService {
 
-  public url = 'http://localhost:3005/api/flights'; //webserver backend
+  private readonly url = 'http://localhost:3005/api/flights'; //webserver backend
   constructor(private http: HttpClient) { }
 
 

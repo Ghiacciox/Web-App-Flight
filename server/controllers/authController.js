@@ -7,7 +7,18 @@ exports.login = (req, res) => {
     const tokendata = {
         email: user.email,
         role: user.role,
-        id: user._id
+        id: user._id,
+
+        // Dati Passenger
+        name: user.name,
+        surname: user.surname,
+        birthdate: user.birthdate,
+        phonenumber: user.phonenumber,
+        paymentAddress: user.paymentAddress,
+        // Dati Airline
+        company: user.company,
+        // Info di sistema
+        dateofcreation: user.dateofcreation
     };
     //passport ha già validato le credenziali
     //creo il token JWT

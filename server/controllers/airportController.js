@@ -4,8 +4,11 @@ const Airport = require('../models/Airports');
 exports.getAirports = async (req, res) => {
     try {
         //cerca l'aereoporto in base alla città
-        const {name, city ,country} = req.query;
+        const {code, name, city ,country} = req.query;
         let filter = {};
+        if(code){
+            filter.code = code.toUpperCase();
+        }
         if(city){
             filter.city = { $regex: city, $options: 'i' };
         }
