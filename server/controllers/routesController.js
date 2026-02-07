@@ -10,8 +10,17 @@ exports.getRoutes = async (req, res) => {
         return res.status(403).json({ error: true, errormessage: "Solo le compagnie aeree possono creare rotte" });
     }
         const { from, to,} = req.query;
-        const routes = await helper.findRoutesHelper(from, to);
-        res.status(200).json(routes);
+        const routes = await helper.findRoutesHelper(from, to) || [];
+
+        let routeFlight = routes.find(r => r.airlineId.toString() === req.auth.id.toString());
+        if (!routeFlight) {
+            return res.status(400).json({ 
+                error: true, 
+                errormessage: `La rotta ${from}-${to} non è registrata per la tua compagnia.` 
+            });
+        }
+    
+        res.status(200).json(routeFlight);
     } catch (err) {
         res.status(500).json({ error: true, errormessage: "Errore ricerca rotte", details: err.message });
     }

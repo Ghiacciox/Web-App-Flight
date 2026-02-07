@@ -12,4 +12,7 @@ router.get('/', flightsController.getFlights);
 
 router.delete('/:id', checkJwt, flightsController.deleteFlight);
 
+router.patch('/:id', checkJwt, flightsController.updateFlight);
+
+
 module.exports = router;

@@ -1,22 +1,43 @@
 import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
-import { ReactiveFormsModule, FormBuilder, FormGroup, Validators, FormsModule } from '@angular/forms';
+import { ReactiveFormsModule, FormBuilder, FormGroup, Validators, FormsModule, ValidatorFn, AbstractControl, ValidationErrors } from '@angular/forms';
 import { HttpService } from '../../services/http.service';
 import { Airplane, FlightPrices, SearchService,  } from '../../services/search.service';
 import { ChangeDetectorRef } from '@angular/core';
 import { AirlineAirplaneService} from '../../services/airline.airplane.service';
 import { BookingService} from '../../services/booking.service';
+import { RouterModule } from '@angular/router';
 
-//per non toccare l'oggetto originale
-interface AirplaneUI extends Airplane {
-    selectedClass?: string;
-}
+export const dateComparisonValidator: ValidatorFn = (group: AbstractControl): ValidationErrors | null => {
+  const depDate = group.get('departureDate')?.value;
+  const depTime = group.get('departureTime')?.value;
+  const arrDate = group.get('arrivalDate')?.value;
+  const arrTime = group.get('arrivalTime')?.value;
+
+  if (!depDate || !depTime || !arrDate || !arrTime) {
+    return null; 
+  }
+
+  const departure = new Date(`${depDate}T${depTime}`);
+  const arrival = new Date(`${arrDate}T${arrTime}`);
+  const now = new Date();
+  
+  if (departure < now) {
+    return { departureInPast: true }; // La partenza è nel passato
+  }
+  
+  if (arrival <= departure) {
+    return { dateInvalid: true };
+  }
+  
+  return null;
+};
+
 
 @Component({
   selector: 'app-airline-flight',
-  imports: [CommonModule, ReactiveFormsModule, FormsModule],
-  providers: [AirlineFlightComponent],
-  standalone: true,
+  imports: [CommonModule, ReactiveFormsModule, FormsModule, RouterModule],
+  providers: [SearchService, AirlineAirplaneService, BookingService],
   templateUrl: './airline-flight.html',
   styleUrl: './airline-flight.css',
 })
@@ -28,7 +49,10 @@ export class AirlineFlightComponent {
 
   airplaneModelSearch: string = '';
   //res del search
-  airplanes: AirplaneUI[] = [];
+  airplanes: Airplane[] = [];
+
+  errorMessage: string | null = null;
+  successMessage: string | null = null;
   
     constructor(
       public http: HttpService,
@@ -68,10 +92,14 @@ export class AirlineFlightComponent {
         baggage: [0, [Validators.required, Validators.min(0)]],
         priorityBoarding: [0, [Validators.required, Validators.min(0)]],
 
-    });
+    }, { validators: dateComparisonValidator });
   }
 
+  
   onclickCreateFlight() {
+    this.errorMessage = null; 
+    this.successMessage = null;
+
     if (this.FlightForm.valid) {
 
       const flightNumber: string = this.FlightForm.value.flightNumber;
@@ -79,7 +107,7 @@ export class AirlineFlightComponent {
       const from: string = this.FlightForm.value.from;
       const to: string = this.FlightForm.value.to;
       const prices: FlightPrices = {
-        economy: this.FlightForm.value.economyPrice,
+        economy:  this.FlightForm.value.economyPrice,
         business: this.FlightForm.value.businessPrice,
         firstclass: this.FlightForm.value.firstClassPrice,
         extras : {
@@ -96,36 +124,48 @@ export class AirlineFlightComponent {
       date = this.FlightForm.value.arrivalDate;
       time = this.FlightForm.value.arrivalTime;
       const arrivalTime: Date = new Date(date + 'T' + time);
-       
 
+      console.log('Dati del volo da creare:', {
+        flightNumber,
+        departureTime,
+        arrivalTime,
+        airplaneId,
+        from,
+        to,
+        prices
+      });
+       
       this.searchService.createFlight(flightNumber, departureTime, arrivalTime, airplaneId, from, to, prices).subscribe({
         next: (response) => {
-            alert("volo creato con successo!");
+            this.successMessage = "Volo creato con successo!";
             console.log('Risposta dal server:', response);
             this.FlightForm.reset();
         },
         error: (error) => {
-          console.error('Errore durante la creazione del volo:', error);
-            alert('Si è verificato un errore durante la creazione del volo.');
+          console.error('Errore server:', error);
+          this.errorMessage = error.error?.errormessage || 'Errore imprevisto del server';
         }
       });
     } else {
         this.FlightForm.markAllAsTouched();
-        alert('Compila bene i campi!');
+        this.errorMessage = "Compila bene i campi!";
     } 
   }
 
   deleteFlight(flightNumber: string) { //semplicemente mette i voli come non attivi, non li cancella davvero
     this.searchService.deleteFlight(flightNumber).subscribe({
       next: (response) => {
-          alert("volo eliminato con successo!");
+          this.successMessage = "Volo eliminato con successo!";
           console.log('Risposta dal server:', response);
       },
       error: (error) => {
         console.error('Errore durante l\'eliminazione del volo:', error);
-          alert('Si è verificato un errore durante l\'eliminazione del volo.');
+          this.errorMessage = error.error?.errormessage || 'Si è verificato un errore durante l\'eliminazione del volo.';
       }
     });
   }
+
+
+  
 
 }

@@ -192,6 +192,20 @@ export class SearchService {
     );  
   }
 
+   updateFlightPrices(flightId: string, prices: FlightPrices, departureTime: Date, arrivalTime: Date): Observable<newFlightResponse> {
+    const token = this.httpServices.get_token();
+    const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
+
+    return this.http.put<newFlightResponse>(
+      this.url + '/' + flightId,
+      { prices: prices,
+        departureTime: departureTime,
+        arrivalTime: arrivalTime
+      },
+      { headers: headers }
+    );
+  }
+
   deleteFlight(flightId: string): Observable<ServerResponse> {
     const token = this.httpServices.get_token();
     const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
@@ -200,6 +214,8 @@ export class SearchService {
       {headers: headers} 
     );
   }
+
+  
 
 
 }
