@@ -123,7 +123,7 @@ export class AirlineAirplanesComponent {
     this.airlineAirplaneService.getAirplanes(this.airplaneModelSearch).subscribe({
       next: (response: AirplaneServerResponse) => { 
     
-        console.log('Messaggio dal server:', response.message); 
+        console.log('Aereo trovato:', response.message , response.airplanes); 
 
         // Ora TypeScript sa che 'response.airplanes' esiste ed è un array!
         if (response.airplanes) {

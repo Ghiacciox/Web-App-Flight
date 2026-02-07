@@ -8,6 +8,8 @@ const { checkJwt } = require('../middleware/authMiddleware');
 router.post('/',checkJwt, flightsController.createFlights);
 
 //cerco con get aerei metodo pubblico
-router.get('/', flightsController.getFlights)
+router.get('/', flightsController.getFlights);
+
+router.delete('/:id', checkJwt, flightsController.deleteFlight);
 
 module.exports = router;

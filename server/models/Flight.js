@@ -74,6 +74,11 @@ const flightSchema = new mongoose.Schema({
         required: true
     },
 
+    active: {
+        type: Boolean,
+        default: true
+    },
+
     bookedSeats : {
         type: [{
             seat: { 

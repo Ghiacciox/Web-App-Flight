@@ -21,6 +21,11 @@ const routeSchema = new mongoose.Schema({
         required: true
     },
 
+    active: {
+        type: Boolean,
+        default: true
+    }
+
 });
 
 routeSchema.index( //no salvataggio di rotte duplicate

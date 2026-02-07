@@ -1,6 +1,8 @@
 import { Injectable } from '@angular/core';
-import { HttpClient,  HttpParams } from '@angular/common/http';
+import { HttpClient,  HttpHeaders,  HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { HttpService } from './http.service';
+import { AirportsService } from './airports.service';
 
 
 //flightNumber, from, to, initialDate , finalDate , company
@@ -25,6 +27,7 @@ export interface Airport {
   name: string;  // Es. Marco Polo
   city: string;  // Es. Venice
   country: string;
+  active: boolean;
 }
 
 // Struttura della Rotta (dal file Routes.js)
@@ -33,6 +36,7 @@ export interface Route {
   departureAirport: Airport; 
   arrivalAirport: Airport;
   airlineId?: string; 
+  active: boolean;
 }
 
 export interface Seats {
@@ -51,11 +55,16 @@ export interface Airplane {
     business: Seats;
     firstclass: Seats;
   };
+  active: boolean;
 }
 
 export interface bookedSeats {
   seats: string;  
   class: string
+}
+ export interface newFlightResponse {
+  message: string;
+  flight: Flight;
 }
 
 //dati nascosti dentro il nostro token
@@ -107,11 +116,14 @@ export interface Flight {
 export class SearchService {
 
   private readonly url = 'http://localhost:3005/api/flights'; //webserver backend
-  constructor(private http: HttpClient) { }
+  constructor(
+    private http: HttpClient,
+    private httpServices: HttpService
+  ) { }
 
 
   //prende mail e pssw li unisce con : e le codifica in base64
-  searchFlights( flightNumber: string, from: string, to: string, initialDate: Date, finalDate?: Date, company?: string): Observable<ServerResponse> {
+  searchFlights( flightNumber: string, from: string, to: string, initialDate: Date, finalDate?: Date, company?: string, active?: boolean): Observable<ServerResponse> {
     console.log('flightNumber' + flightNumber , 'from' + from, 'to' + to, 'initialDate' + initialDate, 'finalDate' + finalDate, 'company' + company );
 
       let parameters= new HttpParams();
@@ -121,6 +133,8 @@ export class SearchService {
         parameters = parameters.set('company', company);
       if(finalDate)
         parameters = parameters.set('finalDate',finalDate.toISOString());
+      if(active)
+        parameters = parameters.set('active', active.toString());
       
       parameters = parameters
         .set('from', from)
@@ -129,4 +143,63 @@ export class SearchService {
     
     return this.http.get<ServerResponse>(this.url + '/', { params: parameters });
   }
+
+
+  //per solo refreshInterval
+  searchFlightsID( flightNumber: string): Observable<ServerResponse> {
+    console.log('flightNumber' + flightNumber ); 
+
+    let parameters= new HttpParams();
+    parameters = parameters.set('flightNumber', flightNumber);
+
+    return this.http.get<ServerResponse>(this.url + '/', { params: parameters });
+  }
+
+
+  /*
+   flightNumber: "BAU100",
+            company: airlineBau._id,
+            prices: { economy: 50, business: 150, firstclass: 300, extras: { baggage: 30, legroom: 15, priorityBoarding: 10 } },
+            departureTime: getTomorrowTime(8, 0), // Domani 08:00
+            arrivalTime: getTomorrowTime(9, 30),  // Domani 09:30
+            airplane: airplane._id,
+            route: routeLinFco._id,
+            bookedSeats: []
+  */
+  
+
+
+  createFlight(flightNumber: string, departureTime: Date, arrivalTime: Date, airplaneId: string, from: string, to: string, prices: FlightPrices): Observable<newFlightResponse> {
+
+    const company = this.httpServices.get_company(); 
+    const token = this.httpServices.get_token();
+    const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
+
+    return this.http.post<newFlightResponse>( 
+      this.url + '/',  
+      { 
+        flightNumber: flightNumber,
+        company: company,
+        prices: prices,
+        departureTime: departureTime, 
+        arrivalTime: arrivalTime,  
+        airplane: airplaneId,
+        from: from,
+        to: to
+        //bookedSeats: [] automatic
+      },
+      {headers: headers }
+    );  
+  }
+
+  deleteFlight(flightId: string): Observable<ServerResponse> {
+    const token = this.httpServices.get_token();
+    const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
+    return this.http.delete<ServerResponse>(
+      this.url + '/'+ flightId, //url con id rotta 
+      {headers: headers} 
+    );
+  }
+
+
 }

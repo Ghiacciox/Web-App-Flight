@@ -51,4 +51,6 @@ exports.createAirport = async (req, res) => {
             return res.status(400).json({ error: true, errormessage: "Codice aeroporto già esistente" });
         }
     }
+
+
 };

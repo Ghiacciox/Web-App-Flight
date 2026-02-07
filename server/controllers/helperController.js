@@ -221,41 +221,6 @@ const findFlightsHelper = async (flightNumber, from, to, initialDate , finalDate
 }
 
 
-/*
-//SEAt VALIDATORRR
-const seatValidator = async (airplane, seat, flightClass) => {
-    try {
-        const classConfig = airplane.capacity[flightClass];
-        if(!classConfig || classConfig.rows<=0 || classConfig.seatLetters.length==0){
-            console.log("falso classe non esistente");
-            return false;
-        }
-
-        const formatoValido = seat.match(/^(\d+)([A-Z]+)$/);
-        if(!formatoValido){
-            console.log("formato posto non valido");
-            return false;
-        }
-
-        if(classConfig.rows < parseInt(formatoValido[1])){
-            console.log("falso posto fuori capienza");
-            return false;
-        }   
-        
-        if(!classConfig.seatLetters.includes(formatoValido[2])){
-            console.log("falso stai posto occupato");
-            return false;
-        }
-        //non salvo qua per la race condition
-        return true;
-        
-    }catch (err) {
-        console.log("Errore helper validazione posti:", err);
-        return false;
-    }
-};
-*/
-
 const seatReleaser = async (flightID, seat, flightClass) => {
     try {
         const selectedSeat ={
@@ -321,6 +286,68 @@ const createTicketHelper = async (userId, flightId, seat, flightClass, extras, p
     await newTicket.save();
     return newTicket
 }
+
+
+const flightDeleterHelper = async (flightId, auth) => {
+    try {
+        const flight = await Flight.findById(flightId);
+        if (!flight) return { error: true, message: "Volo non trovato" }    ;
+
+        // Controllo proprietà: L'utente loggato è il proprietario del volo?
+        if (auth.role !== 'admin' && flight.company.toString() !== auth.id) {
+            return { error: true, message: "Non puoi cancellare voli di altri" };
+        }
+
+        const tickets = await Ticket.find({ flight: flight._id }).select('_id'); 
+        // 1. Trova tutti i ticket associati a questo volo
+        const ticketIds = tickets.map(t => t._id);
+        //crea array di id dei ticket associati al volo
+        
+        // 2. Aggiorna tutti i Booking che includono almeno uno di questi ticket
+        await Booking.updateMany(
+            { tickets: { $in: ticketIds } }, 
+            { status: 'cancelled' }
+        );
+
+        await Flight.findByIdAndUpdate(flightId, { active: false }, { new: true });
+        return { message: "Volo cancellato", flight: flight };
+    } catch (err) {
+        return { error: true, message: err.message };
+    }
+};
+
+const deleteTicketHelper = async (ticketID, auth) => {
+    try {
+        const ticketToDelete = await Ticket.findById(ticketID);
+        if (!ticketToDelete) throw new Error("Biglietto non trovato");
+
+        // Controllo permessi
+        if (auth.role !== 'admin' && ticketToDelete.user.toString() !== auth.id) {
+            throw new Error("Non hai i permessi per cancellare questo biglietto");
+        }
+
+        // Rilasciamo il posto sul volo usando lo seatReleaser che hai già
+        // seatReleaser si occupa di cercare il volo e fare il $pull del posto
+        const released = await seatReleaser(
+            ticketToDelete.flight, 
+            ticketToDelete.seat, 
+            ticketToDelete.class
+        );
+
+        if (!released) throw new Error("Errore durante il rilascio del posto sul volo");
+
+        // Eliminiamo il biglietto
+        await Ticket.findByIdAndDelete(ticketID);
+
+        return { success: true, message: "Biglietto cancellato" };
+    } catch (err) {
+        throw err; // Lanciamo l'errore per gestirlo nel chiamante
+    }
+};
+
+
+
+
     
 
 module.exports = {
@@ -329,5 +356,7 @@ module.exports = {
     findDirectFlightsHelper,
     findScaleFlightsHelper,
     createTicketHelper, 
-    seatReleaser
+    seatReleaser,
+    flightDeleterHelper,
+    deleteTicketHelper
 };

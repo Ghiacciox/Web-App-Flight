@@ -1,5 +1,8 @@
 const User = require('../models/Users');
+const Booking = require('../models/Booking');
+const Ticket = require('../models/Ticket');
 const jsonwebtoken = require('jsonwebtoken');
+const { deleteTicketHelper } = require('./helperController');
 
 exports.login = (req, res) => {
     const user = req.user; // Iniettato da Passport
@@ -88,14 +91,70 @@ exports.changePassword = async (req, res) => {
     }catch(err){
         console.error("Registration error:", err);
         return res.status(500).json({ error: true, errormessage: "errore durante cambio password" });
-    }
-
-
-
-    
+    } 
 }
 
+exports.deleteAccount = async (req, res) => {
+    try {
+        let {userId} = req.body;
+        if(auth.role !== 'admin'){
+            return res.status(403).json({ error: true, errormessage: "non hai i permessi per cancellare questo account" });
+        }
+        
+
+        const tickets = await Ticket.find({ user: userId }).select('_id'); 
+        const ticketIds = tickets.map(t => t._id);
+         const results = await Promise.all(
+            ticketIds.map(tId => deleteTicketHelper(tId, req.auth))
+        );
+
+        const bookings = await Booking.deleteMany({ user: userId });
+
+        const errors = results.filter(r => r.error);
+        if (errors.length > 0) {
+            console.error("Alcuni biglietti non sono stati cancellati correttamente:", errors);
+        }
+
+        const deletedUser = await User.findByIdAndDelete(userId);
+        return res.status(200).json({ error: false, errormessage: "" , message: "account cancellato con successo", user: deletedUser });
+    } catch (err) {
+        console.error("Error deleting account:", err);
+        return res.status(500).json({ error: true, errormessage: "Errore durante la cancellazione dell'account" });
+    }
+}
 
 exports.logout = (req, res) => {
     return res.status(200).json({ error: false, errormessage: "", token: token_signed });
+};
+
+exports.getUsers = async (req, res) => {
+    try {
+        if (req.auth.role !== 'admin') {
+            return res.status(403).json({ error: true, errormessage: "Non hai i permessi per visualizzare gli utenti" });
+        }
+        const { name, surname, role, email, birthdate } = req.query;
+
+        let filter = {};
+        if (name) {
+            filter.name = { $regex: name, $options: 'i' };
+        }
+        if (surname) {
+            filter.surname = { $regex: surname, $options: 'i' };
+        }
+        if (role) {
+            filter.role = role;
+        }
+        if (email) {
+            filter.email = { $regex: email, $options: 'i' };
+        }
+        if (birthdate) {
+            filter.birthdate = birthdate;
+        }
+
+        const users = await User.find(filter).select('-hash -salt'); // Escludo hash e salt per sicurezza
+        return res.status(200).json({ error: false, errormessage: "", users });
+    } catch (err) {
+        console.error("Error fetching users:", err);
+        return res.status(500).json({ error: true, errormessage: "Errore durante il recupero degli utenti" });
+    }
 };

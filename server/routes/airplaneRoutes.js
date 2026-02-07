@@ -11,7 +11,6 @@ router.post('/',checkJwt, airplaneController.createAirplane);
 router.get('/', airplaneController.getAirplane)
 
 // elimino aereo protetto solo admin
-//no testato
 router.delete('/:id', checkJwt, airplaneController.deleteAirplane);
 
 module.exports = router;

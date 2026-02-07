@@ -1,10 +1,11 @@
-import { Component, OnInit } from '@angular/core';
-import { bookedSeats, Flight, SearchService, Seats } from '../../services/search.service';
+import { Component, OnDestroy, OnInit } from '@angular/core';
+import { bookedSeats, Flight, SearchService, Seats, ServerResponse } from '../../services/search.service';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
 import { HttpService } from '../../services/http.service';
 import { BookingService, ticketInfo } from '../../services/booking.service';
+import { ChangeDetectorRef } from '@angular/core';
 
 @Component({
   selector: 'app-booking-creation',
@@ -14,10 +15,12 @@ import { BookingService, ticketInfo } from '../../services/booking.service';
   templateUrl: './booking-creation.html',
   styleUrl: './booking-creation.css',
 })
-export class BookingCreationComponent implements OnInit {
+export class BookingCreationComponent implements OnInit, OnDestroy {
 
   firstFlight: Flight | null = null;
   secondFlight: Flight | null = null;
+
+  private refreshInterval: any; //per il polling dei posti prenotati, da fermare in ngOnDestroy
   
   public availableClasses = ['economy', 'business', 'firstclass'];
 
@@ -29,7 +32,7 @@ export class BookingCreationComponent implements OnInit {
   seatsPerRow: number;
   seatLetters: string;
   numberOfSeats: number;
-}
+  }
   */
 
   seatsEconomyFirst: Seats = {} as Seats;
@@ -48,7 +51,9 @@ export class BookingCreationComponent implements OnInit {
     private router: Router,
     public http: HttpService,
     private fb: FormBuilder,
-    public bookingService: BookingService
+    public bookingService: BookingService,
+    private searchService: SearchService,
+    private changeDetector: ChangeDetectorRef
   ) {}
 
   ngOnInit(): void { 
@@ -60,6 +65,10 @@ export class BookingCreationComponent implements OnInit {
     }
 
     const type = source.type;
+
+    this.refreshInterval = setInterval(() => {
+      this.refreshSeatAvailability();
+    }, 3000);
 
     if (source.flights && source.flights.length > 0) {
       this.firstFlight = source.flights[0];
@@ -129,6 +138,67 @@ export class BookingCreationComponent implements OnInit {
     }
   }
 
+
+  // IMPORTANTE: Ferma il timer quando cambi pagina, altrimenti il browser esplode
+  ngOnDestroy(): void {
+    if (this.refreshInterval) {
+      clearInterval(this.refreshInterval);
+    }
+  }
+
+  refreshSeatAvailability() {
+  if (!this.firstFlight) return;
+  
+  this.searchService.searchFlightsID(this.firstFlight.flightNumber).subscribe(updatedFlight => {
+    console.log(' REFRESH PRIMO VOLO', updatedFlight);
+    
+    if(updatedFlight.result && updatedFlight.result.length > 0){
+      // result[0] è un Result object con flights[] dentro
+      const resultObject = updatedFlight.result[0];
+      
+      // Prendi il primo flight dall'array flights
+      if (resultObject.flights && resultObject.flights.length > 0) {
+        const flightData = resultObject.flights[0];
+        console.log('BOOKED SEATS:', flightData.bookedSeats);
+        this.bookedSeatsFirst = [...(flightData.bookedSeats || [])];
+        this.changeDetector.detectChanges();
+      }
+    }
+  });
+
+  if (this.secondFlight) {
+    this.searchService.searchFlightsID(this.secondFlight.flightNumber).subscribe(updatedFlight => {
+      console.log('🔄 REFRESH SECONDO VOLO', updatedFlight);
+      
+      if(updatedFlight.result && updatedFlight.result.length > 0){
+        const resultObject = updatedFlight.result[0];
+        
+        // Per il secondo volo, potrebbe essere in flights[1] se è stopover
+        // o in un result separato
+        if (resultObject.flights && resultObject.flights.length > 1) {
+          const flightData = resultObject.flights[1];
+          this.bookedSeatsSecond = [...(flightData.bookedSeats || [])]; 
+          //aggiorna posti prenotati secondo voloforzo
+          this.changeDetector.detectChanges();
+        }
+      }
+    });
+  }
+}
+
+  updateBookedSeats(flightData: ServerResponse, flightNum: number) {
+      const newBookedSeats = flightData.result[flightNum]?.bookedSeats || []; 
+      if(newBookedSeats.length === 0){
+          return;
+      }
+      if (flightNum === 0) {
+          this.bookedSeatsFirst = [...newBookedSeats]; 
+      } else if(flightNum === 1) {
+          this.bookedSeatsSecond = [...newBookedSeats];
+      }
+      this.changeDetector.detectChanges();
+  }
+
   private setupPriceListeners(flightKey: 'first' | 'second') {
     const groupName = flightKey === 'first' ? 'firstFlight' : 'secondFlight';
     
@@ -142,6 +212,7 @@ export class BookingCreationComponent implements OnInit {
       this.calculatePrice(flightKey);
     });
   }
+
 
 
   //setta cambio classe
@@ -162,7 +233,7 @@ export class BookingCreationComponent implements OnInit {
 
   // Verifica se il posto è libero controllando l'array di oggetti
   public isSeatAvailable(seat: string, flightClass: string, flightNumber: 'first' | 'second'): boolean {
-    let bookedSeatsArray : any[] | null = null; // Metti any temporaneamente per evitare errori TS
+    let bookedSeatsArray : any[] | null = null; 
 
     if (flightNumber === 'first') {
       bookedSeatsArray = this.bookedSeatsFirst;
@@ -172,18 +243,14 @@ export class BookingCreationComponent implements OnInit {
 
     if (!bookedSeatsArray || bookedSeatsArray.length === 0) return true; 
 
-    // --- DEBUG: STAMPA IL PRIMO ELEMENTO PER VEDERE I NOMI REALI ---
-    // Fallo solo per il posto 1A per non intasare la console
     if (seat === '1A') {
         console.log('STRUTTURA REALE DATA DAL SERVER:', JSON.stringify(bookedSeatsArray[0]));
     }
     // -------------------------------------------------------------
 
     const isBooked = bookedSeatsArray.some(booking => {
-        // PROBABILMENTE LA SOLUZIONE È QUESTA (seat singolare, travelClass):
-        // Verifica se i nomi coincidono con quelli stampati nel log sopra
-        return (booking.seat || booking.seats) === seat && 
-               (booking.travelClass || booking.class) === flightClass;
+      //console.log(' booking:', booking)
+      return booking.seat === seat && booking.travelClass === flightClass;
     });
 
     return !isBooked; 

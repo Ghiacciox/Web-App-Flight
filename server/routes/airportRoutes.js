@@ -8,6 +8,6 @@ const { checkJwt } = require('../middleware/authMiddleware');
 router.post('/',checkJwt, airportController.createAirport); 
 
 //cerco con get aerei metodo pubblico
-router.get('/', airportController.getAirports)
+router.get('/', airportController.getAirports);
 
 module.exports = router;

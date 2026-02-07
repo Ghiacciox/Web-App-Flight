@@ -56,7 +56,8 @@ export class FlightsearchComponent implements OnInit {
           finalDate = new Date(params['finalDate']);
       }
 
-      this.searchService.searchFlights(flightNumber, from, to, initialDate , finalDate , company)
+      this.searchService.searchFlights(flightNumber, from, to, initialDate , finalDate , company, true)
+       //true mostra solo i voli attivi
         .subscribe((response: ServerResponse) => {
           console.log('Search results:', response);
           this.Results$.next(response.result || []);

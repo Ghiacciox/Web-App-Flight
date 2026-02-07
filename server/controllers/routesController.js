@@ -71,9 +71,25 @@ exports.deleteRoute = async (req, res) => {
             return res.status(403).json({ error: true, message: "Non puoi cancellare rotte di altri" });
         }
 
-        await Route.findByIdAndDelete(req.params.id);
-        res.status(200).json({ message: "Rotta cancellata" });
+        const id = req.params.id;
+        const flight = await Flight.find({ route: id }).select('_id'); 
+        // 1. Trova tutti i ticket associati a questo volo
+        const flightIds = flight.map(f => f._id);
+
+        //tutti i flightDeleterHelper in parallelo
+        const results = await Promise.all(
+            flightIds.map(fId => flightDeleterHelper(fId, req.auth))
+        );
+
+        const errors = results.filter(r => r.error);
+        if (errors.length > 0) {
+            console.error("Alcuni voli non sono stati cancellati correttamente:", errors);
+        }
+
+        await Route.findByIdAndUpdate(req.params.id, { active: false }, { new: true });
+        res.status(200).json({ message: "Rotta cancellata", route: route });
     } catch (err) {
         res.status(500).json({ error: true, message: err.message });
     }
 };
+

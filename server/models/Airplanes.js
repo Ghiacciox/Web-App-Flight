@@ -42,6 +42,11 @@ const airplaneSchema = new mongoose.Schema({
     totalSeats: {
         type: Number,
         default: 0
+    },
+
+    active: {
+        type: Boolean,
+        default: true
     }
 
 });

@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 const Ticket = require('../models/Ticket');
 const Flight = require('../models/Flight');
-const { seatReleaser, createTicketHelper } = require('./helperController');
+const { createTicketHelper, deleteTicketHelper } = require('./helperController');
 
 exports.getTickets = async (req, res) => {
     try {
@@ -101,30 +101,8 @@ exports.deleteTicket= async (req, res) => {
             throw new Error("Non hai i permessi per cancellare il biglietto");
         }
     
-        let ticketToDelete = await Ticket.findById(ticketID);
-        let flightSeatToDelete = await Flight.findById(ticketToDelete.flight);
-
-        if(!ticketToDelete){
-            throw new Error("Biglietto non trovato");
-        }
-
-        if(req.auth.role !== 'admin' && ticketToDelete.user.toString() !== userId){
-            throw new Error("non puoi cancellare i biglietti di ialtri se non sei admin");
-        }
-
-        if(!flightSeatToDelete){
-            throw new Error("Volo non trovato, impossibile cancellare il biglietto");
-        }
-
-        if(!flightSeatToDelete.bookedSeats.includes(ticketToDelete.seat)){
-            throw new Error("Posto non valido o già occupato");
-        }
-
-        //flightSeatToDelete.bookedSeats.pull({ seat: ticketToDelete.seat, travelClass: ticketToDelete.flightClass }); //cancello posto
-        await seatReleaser(flightSeatToDelete.flight, ticketToDelete.seat, ticketToDelete.class);
-        await Ticket.findByIdAndDelete(ticketID); 
-
-        return res.status(200).json({ message: "Biglietto cancellato con successo!"});
+        const result = await deleteTicketHelper(ticketID, req.auth);
+        return res.status(200).json(result);
     }catch(err){
         if (session) {
             await session.abortTransaction();
