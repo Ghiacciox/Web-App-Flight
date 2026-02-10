@@ -65,8 +65,10 @@ const findDirectFlightsHelper = async (flightNumber, from, to, initialDate , fin
         }
 
         if (company) {
-            const airlineUser = await User.findOne({ role: 'airline', company: { $regex: company, $options: 'i' } });
-            if (airlineUser) filter.company = airlineUser._id;
+            const airlineUser = await User.findOne({ role: 'airline', company: company });
+            console.log(`Ricerca compagnia "${company}":`, airlineUser);
+            if (airlineUser) 
+                filter.company = airlineUser._id;
             else return [];
         }
         
@@ -93,6 +95,10 @@ const findDirectFlightsHelper = async (flightNumber, from, to, initialDate , fin
         const filtered = await Flight.find(filter)
             .populate('airplane')
             .populate({
+                path: 'company',
+                select: 'company email role' 
+            })
+            .populate({
                 path: 'route',
                 populate: { path: 'departureAirport arrivalAirport' }
                  // Popola anche gli aeroporti dentro la rotta
@@ -118,14 +124,14 @@ const findDirectFlightsHelper = async (flightNumber, from, to, initialDate , fin
 
 // Helper per trovare voli in base a vari parametri
 //devo trovare i voli con scalo
-
 const findScaleFlightsHelper = async ( from, to, initialDate , finalDate , company) => {
     try {
         let filter = {};
         //preparo un oggetto di filtro per la query
 
        if (company) {
-            const airlineUser = await User.findOne({ role: 'airline', company: { $regex: company, $options: 'i' } });
+            const airlineUser = await User.findOne({ role: 'airline', company: company });
+            console.log(`Ricerca compagnia "${company}":`, airlineUser);
             if (airlineUser) filter.company = airlineUser._id;
             else return [];
         }
@@ -294,22 +300,25 @@ const flightDeleterHelper = async (flightId, auth) => {
         if (!flight) return { error: true, message: "Volo non trovato" }    ;
 
         // Controllo proprietà: L'utente loggato è il proprietario del volo?
-        if (auth.role !== 'admin' && flight.company.toString() !== auth.id) {
+        if (auth.role !== 'admin' && flight.company.toString() !== auth.id.toString()) {
             return { error: true, message: "Non puoi cancellare voli di altri" };
         }
 
         const tickets = await Ticket.find({ flight: flight._id }).select('_id'); 
-        // 1. Trova tutti i ticket associati a questo volo
-        const ticketIds = tickets.map(t => t._id);
-        //crea array di id dei ticket associati al volo
-        
-        // 2. Aggiorna tutti i Booking che includono almeno uno di questi ticket
-        await Booking.updateMany(
-            { tickets: { $in: ticketIds } }, 
-            { status: 'cancelled' }
-        );
+    
 
+        const ticketIds = tickets.map(t => t._id);
+        if (tickets.length > 0) {
+            await Booking.updateMany(
+                { tickets: { $in: ticketIds } }, 
+                { status: 'cancelled' }
+            );
+        }
+
+        console.log(`Cancellati ${tickets.length} biglietti associati al volo ${flightId}`);
         await Flight.findByIdAndUpdate(flightId, { active: false }, { new: true });
+        console.log(`Volo ${flightId} cancellato (active: false)`);
+
         return { message: "Volo cancellato", flight: flight };
     } catch (err) {
         return { error: true, message: err.message };
@@ -322,7 +331,7 @@ const deleteTicketHelper = async (ticketID, auth) => {
         if (!ticketToDelete) throw new Error("Biglietto non trovato");
 
         // Controllo permessi
-        if (auth.role !== 'admin' && ticketToDelete.user.toString() !== auth.id) {
+        if (auth.role !== 'admin' && ticketToDelete.user.toString() !== auth.id.toString()) {
             throw new Error("Non hai i permessi per cancellare questo biglietto");
         }
 
@@ -345,10 +354,6 @@ const deleteTicketHelper = async (ticketID, auth) => {
     }
 };
 
-
-
-
-    
 
 module.exports = {
     findRoutesHelper,

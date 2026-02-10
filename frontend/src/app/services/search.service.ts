@@ -2,7 +2,6 @@ import { Injectable } from '@angular/core';
 import { HttpClient,  HttpHeaders,  HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { HttpService } from './http.service';
-import { AirportsService } from './airports.service';
 
 
 //flightNumber, from, to, initialDate , finalDate , company
@@ -123,12 +122,12 @@ export class SearchService {
 
 
   //prende mail e pssw li unisce con : e le codifica in base64
-  searchFlights( flightNumber: string, from: string, to: string, initialDate: Date, finalDate?: Date, company?: string, active?: boolean): Observable<ServerResponse> {
+  searchFlights( flightNumber?: string, from?: string, to?: string, initialDate?: Date, finalDate?: Date, company?: string, active?: boolean): Observable<ServerResponse> {
     console.log('flightNumber' + flightNumber , 'from' + from, 'to' + to, 'initialDate' + initialDate, 'finalDate' + finalDate, 'company' + company );
 
       let parameters= new HttpParams();
-      parameters = parameters.set('flightNumber', flightNumber);
-      
+      if(flightNumber)
+        parameters = parameters.set('flightNumber', flightNumber);
       if(company) 
         parameters = parameters.set('company', company);
       if(finalDate)
@@ -136,10 +135,12 @@ export class SearchService {
       if(active)
         parameters = parameters.set('active', active.toString());
       
-      parameters = parameters
-        .set('from', from)
-        .set('to', to)
-        .set('initialDate', initialDate.toISOString())
+      if(from)
+        parameters = parameters.set('from', from);
+      if(to)
+        parameters = parameters.set('to', to);
+      if(initialDate)
+        parameters = parameters.set('initialDate', initialDate.toISOString())
     
     return this.http.get<ServerResponse>(this.url + '/', { params: parameters });
   }
@@ -150,7 +151,8 @@ export class SearchService {
     console.log('flightNumber' + flightNumber ); 
 
     let parameters= new HttpParams();
-    parameters = parameters.set('flightNumber', flightNumber);
+    if(flightNumber)
+      parameters = parameters.set('flightNumber', flightNumber);
 
     return this.http.get<ServerResponse>(this.url + '/', { params: parameters });
   }
@@ -171,7 +173,7 @@ export class SearchService {
 
   createFlight(flightNumber: string, departureTime: Date, arrivalTime: Date, airplaneId: string, from: string, to: string, prices: FlightPrices): Observable<newFlightResponse> {
 
-    const company = this.httpServices.get_company(); 
+    const company = this.httpServices.get_id(); //salvato con id della compagnia aerea loggata 
     const token = this.httpServices.get_token();
     const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
 
@@ -192,11 +194,12 @@ export class SearchService {
     );  
   }
 
-   updateFlightPrices(flightId: string, prices: FlightPrices, departureTime: Date, arrivalTime: Date): Observable<newFlightResponse> {
+   updateFlight(flightId: string, prices: FlightPrices | null = null, departureTime: Date | null = null, arrivalTime: Date | null = null): Observable<newFlightResponse> {
     const token = this.httpServices.get_token();
     const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
 
-    return this.http.put<newFlightResponse>(
+    console.log('chiamo endpoint modifica voli');
+    return this.http.patch<newFlightResponse>(
       this.url + '/' + flightId,
       { prices: prices,
         departureTime: departureTime,

@@ -22,9 +22,11 @@ export const dateComparisonValidator: ValidatorFn = (group: AbstractControl): Va
   const arrival = new Date(`${arrDate}T${arrTime}`);
   const now = new Date();
   
+  /*
   if (departure < now) {
     return { departureInPast: true }; // La partenza è nel passato
   }
+    */
   
   if (arrival <= departure) {
     return { dateInvalid: true };

@@ -9,6 +9,7 @@ import { BookingDetailComponent } from './pages/booking-detail/booking-detail';
 import { AirlineRoutesComponent } from './pages/airline-routes/airline-routes'; 
 import { AirlineAirplanesComponent } from './pages/airline-airplanes/airline-airplanes';
 import { AirlineFlightComponent } from './pages/airline-flight/airline-flight';
+import { AirlineManageFlightComponent } from './pages/airline-manage-flight/airline-manage-flight';
 
 
 //qua ho tutte le rotte posso navigare in base 
@@ -24,5 +25,7 @@ export const routes: Routes = [
     { path: 'bookingDetail', component: BookingDetailComponent },
     { path: 'airline-Routes', component: AirlineRoutesComponent },
     { path: 'airline-Airplanes', component: AirlineAirplanesComponent },
-    { path: 'airline-Flight', component: AirlineFlightComponent }
+    { path: 'airline-Flight', component: AirlineFlightComponent },
+    { path: 'airline-Manage', component: AirlineManageFlightComponent}
+
 ];

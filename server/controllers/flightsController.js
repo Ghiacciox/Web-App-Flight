@@ -49,7 +49,7 @@ exports.createFlights = async (req, res) => {
 
         let newFlight = new Flight({
             flightNumber: flightNumber,
-            company: company,
+            company: req.auth.id,
             route: routeFlight._id,
             prices: prices,
             departureTime: departureTime,
@@ -80,6 +80,7 @@ exports.createFlights = async (req, res) => {
 exports.updateFlight = async (req, res) => {
     try {
         if (req.auth.role !== 'admin' && req.auth.role !== 'airline') {
+            console.log("Permessi insufficienti per aggiornare il volo. Ruolo dell'utente:", req.auth.role);
             return res.status(403).json({ error: true, errormessage: "Permessi insufficienti" });
         }
 
@@ -96,20 +97,42 @@ exports.updateFlight = async (req, res) => {
             return res.status(404).json({ error: true, errormessage: "Volo non trovato" });
         }
 
+         console.log("Confronto:", 
+            "flight.company =", flight.company.toString(), 
+            "req.auth.id =", req.auth.id.toString(), 
+            "req.auth.role =", req.auth.role);
+
         if (req.auth.role !== 'admin' && flight.company.toString() !== req.auth.id.toString()) {
             return res.status(403).json({ error: true, errormessage: "Non puoi modificare voli di altre compagnie" });
         }
 
-        if (departureTime) flight.departureTime = departureTime;
-        if (arrivalTime) flight.arrivalTime = arrivalTime;  
-        if (prices) flight.prices = prices;
+        console.log("Volo prima dell'aggiornamento:", flight);
+        if (departureTime)
+             flight.departureTime = new Date(departureTime);
+        if (arrivalTime)
+             flight.arrivalTime = new Date(arrivalTime); 
+        console.log("dopo aggiornamento date:", flight); 
+        if (prices){
+             flight.prices = {
+                economy: prices.economy ?? flight.prices.economy,
+                business: prices.business ?? flight.prices.business,
+                firstclass: prices.firstclass ?? flight.prices.firstclass,
+                extras: {
+                    baggage: prices.extras?.baggage ?? flight.prices.extras.baggage,
+                    legroom: prices.extras?.legroom ?? flight.prices.extras.legroom,
+                    priorityBoarding: prices.extras?.priorityBoarding ?? flight.prices.extras.priorityBoarding
+                }
+        }
+       
+        console.log("Volo dopo l'aggiornamento:", flight);
         await flight.save();
+        console.log("Volo salvato con successo:");
 
         return res.status(200).json({ 
             message: "Prezzi aggiornati con successo!", 
             flight: flight 
         });
-
+    }
     } catch (err) {
         console.error("ERRORE AGGIORNAMENTO VOLO:", err);
         return res.status(500).json({ 
@@ -121,9 +144,17 @@ exports.updateFlight = async (req, res) => {
 
 exports.deleteFlight= async (req, res) => {
     try {
-        const result = await flightDeleterHelper(req.params.id, req.auth);
+        console.log("Richiesta di cancellazione del volo con ID:", req.params.id, "da parte dell'utente:", req.auth);
+        const flightId = req.params.id;
+        console.log("ID del volo da cancellare:", flightId);
+        const result = await helper.flightDeleterHelper(flightId, req.auth);
+        if(result.error) {
+            console.log("Errore durante la cancellazione del volo:", result.message);
+            return res.status(result.status || 400).json({ error: true, message: result.message });
+        }
         return res.status(200).json(result);
     } catch (err) {
-        return res.status(500).json({ error: true, message: err.message });
+        console.error("ERRORE CANCELLAZIONE VOLO:", err);
+        return res.status(500).json({ error: true, message: err.message || "Errore interno del server" });
     }
 };
