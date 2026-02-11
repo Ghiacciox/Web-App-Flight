@@ -65,29 +65,39 @@ exports.register = async (req, res) => {
     }
 }
 
-exports.changePassword = async (req, res) => {
+exports.changeData= async (req, res) => {
     try{
         //prendo i dati dal body che mi servono
-        let {email, newPassword, oldPassword} = req.body;
+        let {id, name, surname, company, phonenumber,paymentAddress, birthdate, newPassword, oldPassword} = req.body;
         
-        if (!email || !newPassword || !oldPassword) {
-            return res.status(400).json({ error: true, errormessage: "Tutti i campi sono obbligatori" });
+        if (!id) {
+            return res.status(400).json({ error: true, errormessage: "Manca l'ID" });
         }
 
-        const acount = await User.findOne({ email: email });
+        const acount = await User.findById(id);
         if (!acount) {
             return res.status(400).json({ error: true, errormessage: "Utente non trovato" });
         }
 
-        const isOldPasswordValid = acount.validatePassword(oldPassword);
+        if(newPassword && oldPassword){
+            const isOldPasswordValid = acount.validatePassword(oldPassword);
         if (!isOldPasswordValid) {
             return res.status(400).json({ error: true, errormessage: "Vecchia password non corretta" });
         }
 
-        acount.setPassword(newPassword); 
+        acount.setPassword(newPassword);
+        }
+
+        if(name) acount.name = name;
+        if(surname) acount.surname = surname;
+        if(company) acount.company = company;
+        if(phonenumber) acount.phonenumber = phonenumber;
+        if(paymentAddress) acount.paymentAddress = paymentAddress;
+        if(birthdate) acount.birthdate = birthdate;
+         
         await acount.save();
 
-        return res.status(200).json({ error: false, errormessage: "" , message: "password cambiata con successo"});
+        return res.status(200).json({ error: false, errormessage: "" , message: "Dati aggiornati con successo"});
     }catch(err){
         console.error("Registration error:", err);
         return res.status(500).json({ error: true, errormessage: "errore durante cambio password" });
@@ -96,26 +106,25 @@ exports.changePassword = async (req, res) => {
 
 exports.deleteAccount = async (req, res) => {
     try {
-        let {userId} = req.body;
-        if(auth.role !== 'admin'){
+        const id = req.params.id;
+        if(req.auth.role !== 'admin'){
             return res.status(403).json({ error: true, errormessage: "non hai i permessi per cancellare questo account" });
         }
         
-
-        const tickets = await Ticket.find({ user: userId }).select('_id'); 
+        const tickets = await Ticket.find({ user: id }).select('_id'); 
         const ticketIds = tickets.map(t => t._id);
          const results = await Promise.all(
             ticketIds.map(tId => deleteTicketHelper(tId, req.auth))
         );
 
-        const bookings = await Booking.deleteMany({ user: userId });
+        await Booking.deleteMany({ user: id });
 
         const errors = results.filter(r => r.error);
         if (errors.length > 0) {
             console.error("Alcuni biglietti non sono stati cancellati correttamente:", errors);
         }
 
-        const deletedUser = await User.findByIdAndDelete(userId);
+        const deletedUser = await User.findByIdAndDelete(id);
         return res.status(200).json({ error: false, errormessage: "" , message: "account cancellato con successo", user: deletedUser });
     } catch (err) {
         console.error("Error deleting account:", err);

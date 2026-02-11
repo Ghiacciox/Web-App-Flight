@@ -23,6 +23,7 @@ interface ReceivedToken {
 
 //dati per registrare il nuovo utente
 export interface User { 
+  _id?: string;
   email: string;
   password?: string; // Opzionale perché non lo salviamo nel frontend dopo l'invio
   role: 'passenger' | 'airline' | 'admin';
@@ -37,6 +38,12 @@ export interface User {
   // Campi obbligatori se role === 'airline'
   company?: string;
 };
+
+export interface UsersResponse {
+  error: boolean;
+  errormessage: string;
+  users: User[]; 
+}
 
 @Injectable(
   {providedIn: 'root'}
@@ -240,6 +247,55 @@ export class HttpService {
     if ( roles === 'airline' )
         return true;
     return false;
+  }
+
+  get_users(email : string): Observable<UsersResponse> {
+      const token = this.get_token();
+
+      if(this.get_role() !== 'admin') { 
+        console.log("Accesso negato: solo gli admin possono accedere alla lista degli utenti.");
+        return throwError(() => new Error("Accesso negato: solo gli admin possono accedere alla lista degli utenti."));
+      }
+   
+       let parameters= new HttpParams();
+       parameters = parameters
+           .set('email', email);
+       console.log(`Cerco utenti con email ${email} con token ${token}`);
+   
+       const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
+   
+       return this.http.get<UsersResponse>(this.url + '/users', { params: parameters,headers: headers });
+  }
+  
+
+  delete_user(userId: string): Observable<UsersResponse> {
+    const token = this.get_token();
+
+    if(this.get_role() !== 'admin') { 
+      console.log("Accesso negato: solo gli admin possono eliminare utenti.");
+      return throwError(() => new Error("Accesso negato: solo gli admin possono eliminare utenti."));
+    }
+
+    const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
+
+    return this.http.delete<UsersResponse>(
+      this.url + '/users/' + userId,
+      { headers: headers }
+    );
+  }
+  
+  change_user_data( infos : any): Observable<any> {
+    const token = this.get_token();
+
+    if(this.get_role() !== 'admin' && this.get_id() !== infos.id) { 
+      console.log("Accesso negato: solo gli admin o l'utente stesso possono modificare i dati.");
+      return throwError(() => new Error("Accesso negato: solo gli admin o l'utente stesso possono modificare i dati."));
+    }   
+    
+    return this.http.patch<UsersResponse>(
+      this.url + '/changeData',
+      infos,
+      { headers: { 'Authorization' : 'Bearer ' + token } });
   }
 
 }

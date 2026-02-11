@@ -1,0 +1,223 @@
+<div class="min-h-screen flex flex-col bg-gray-100">
+    
+   <nav class="bg-sky-600 text-white shadow-lg sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <div class="flex-shrink-0 font-bold text-2xl tracking-wider cursor-pointer" routerLink="/home">
+                    Bau<span class="text-yellow-500">Flights</span>
+                </div>
+
+                <div class="flex items-center space-x-6">
+                    <ng-container *ngIf="!this.http.isAuthenticated()">
+                        <a routerLink="/login" class="hover:text-yellow-500 transition-colors"> login</a>
+                    </ng-container>
+                    
+                    <ng-container *ngIf="this.http.isAuthenticated() && this.http.is_passenger()">
+                        <a routerLink="/login" class="hover:text-yellow-500 transition-colors"> Profilo</a>
+                        <a routerLink="/bookingPrenotation" class="hover:text-yellow-500 transition-colors"> Prenotazioni</a>
+                    </ng-container>
+
+                    <ng-container *ngIf="this.http.isAuthenticated()">
+                        <a (click)="this.http.logout()" class="hover:text-yellow-500 transition-colors"> logout</a>
+                    </ng-container>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="flex-grow flex flex-col lg:flex-row gap-6 bg-sky-400 items-start justify-center p-4 md:p-8">
+        
+        <div class="flex-1">
+            <div class="bg-white shadow-lg rounded-md p-6 border-yellow-500 border-l-4">
+                <div class="flex flex-row items-center justify-center mb-3 bg-sky-400 p-2 rounded-md shadow-sm">
+                    <span class="text-lg text-sky-800 font-bold tracking-wider">Creazione Utenti</span>
+                </div>
+                
+                <form [formGroup]="newUserForm" (ngSubmit)="onclickCreateUser()" class="w-full">
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+                        <div>
+                            <label class="block text-xs font-bold text-gray-500 uppercase mb-1 ml-1">Email</label>
+                            <input type="email" formControlName="email" placeholder="Es. esempio@mail.com" 
+                                class="w-full px-4 py-3 rounded-md bg-gray-50 border border-slate-300 focus:bg-white focus:ring-2 focus:ring-sky-500 focus:outline-none transition-all" />
+                        </div>
+                        
+                        <div>
+                            <label class="block text-xs font-bold text-gray-500 uppercase mb-1 ml-1">Password</label>
+                            <input type="password" formControlName="password" placeholder="Es. ********" 
+                                class="w-full px-4 py-3 rounded-md bg-gray-50 border border-slate-300 focus:bg-white focus:ring-2 focus:ring-sky-500 focus:outline-none transition-all" />
+                        </div>
+                        
+                        <div>
+                            <label class="block text-xs font-bold text-gray-500 uppercase mb-1 ml-1">Role</label>
+                            <select formControlName="role" class="w-full px-4 py-3 rounded-md bg-gray-50 border border-slate-300 focus:bg-white focus:ring-2 focus:ring-sky-500 focus:outline-none transition-all cursor-pointer appearance-none">
+                                <option value="" disabled selected>Seleziona un ruolo</option>
+                                <option value="airline">airline</option>
+                                <option value="passenger">Passenger</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-gray-500 uppercase mb-1 ml-1">Nome</label>
+                            <input type="text" formControlName="name" placeholder="Es. Mario" 
+                                class="w-full px-4 py-3 rounded-md bg-gray-50 border border-slate-300 focus:bg-white focus:ring-2 focus:ring-sky-500 focus:outline-none transition-all" />
+                        </div>
+
+                         <div>
+                            <label class="block text-xs font-bold text-gray-500 uppercase mb-1 ml-1">Cognome</label>
+                            <input type="text" formControlName="surname" placeholder="Es. Rossi" 
+                                class="w-full px-4 py-3 rounded-md bg-gray-50 border border-slate-300 focus:bg-white focus:ring-2 focus:ring-sky-500 focus:outline-none transition-all" />
+                        </div>
+
+                         <div>
+                            <label class="block text-xs font-bold text-gray-500 uppercase mb-1 ml-1">Data di nascita</label>
+                            <input type="date" formControlName="birthdate" placeholder="Es. 01/01/2000" 
+                                class="w-full px-4 py-3 rounded-md bg-gray-50 border border-slate-300 focus:bg-white focus:ring-2 focus:ring-sky-500 focus:outline-none transition-all" />
+                        </div>
+
+                         <div>
+                            <label class="block text-xs font-bold text-gray-500 uppercase mb-1 ml-1">Phone Number</label>
+                            <input type="text" formControlName="phonenumber" placeholder="Es. 1234567890" 
+                                class="w-full px-4 py-3 rounded-md bg-gray-50 border border-slate-300 focus:bg-white focus:ring-2 focus:ring-sky-500 focus:outline-none transition-all" />
+                        </div>
+
+                         <div>
+                            <label class="block text-xs font-bold text-gray-500 uppercase mb-1 ml-1">Indirizzo di pagamento</label>
+                            <input type="text" formControlName="paymentAddress" placeholder="Es. Mario" 
+                                class="w-full px-4 py-3 rounded-md bg-gray-50 border border-slate-300 focus:bg-white focus:ring-2 focus:ring-sky-500 focus:outline-none transition-all" />
+                        </div>
+
+                         <div>
+                            <label class="block text-xs font-bold text-gray-500 uppercase mb-1 ml-1">Nome Compagnia</label>
+                            <input type="text" formControlName="company" placeholder="Es. Mario" 
+                                class="w-full px-4 py-3 rounded-md bg-gray-50 border border-slate-300 focus:bg-white focus:ring-2 focus:ring-sky-500 focus:outline-none transition-all" />
+                        </div>
+                    </div>
+                    
+                    <div class="flex justify-end">
+                        <button type="submit" [disabled]="newUserForm.invalid"
+                            class="px-6 py-3 bg-sky-600 hover:bg-sky-700 text-white font-bold rounded-md shadow-md transition-all disabled:opacity-50">
+                            Crea Utente
+                        </button>
+                    </div>
+                    
+                    <!-- MESSAGGI PER CREAZIONE -->
+                    <div *ngIf="errorMessage" class="mt-4">
+                        <div class="bg-red-50 border-l-4 border-red-500 p-4 rounded shadow-sm flex items-center justify-between">
+                            <span class="text-red-800 text-sm font-medium">{{ errorMessage }}</span>
+                            <button type="button" (click)="errorMessage = null" class="text-red-500 hover:text-red-700 text-xl font-bold">
+                                &times;
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div *ngIf="successMessage" class="mt-4">
+                        <div class="bg-green-50 border-l-4 border-green-500 p-4 rounded shadow-sm">
+                            <span class="text-green-800 text-sm font-medium">{{ successMessage }}</span>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+    
+        <div class="w-full lg:w-1/3 flex flex-col gap-6">
+            <div class="bg-white shadow-lg rounded-md p-6 border-yellow-500 border-l-4">
+                <div class="flex flex-row items-center justify-center mb-3 bg-sky-400 p-2 rounded-md shadow-sm">
+                    <span class="text-lg text-sky-800 font-bold tracking-wider">Tool Ricerca Account</span>
+                </div>
+                
+                <form [formGroup]="SearchForm" (ngSubmit)="searchUser()">
+                    <div class="grid grid-cols-2 gap-4 mb-4">
+                        <div>
+                            <label class="block text-xs font-bold text-gray-500 uppercase mb-1 ml-1">email</label>
+                            <input type="text" formControlName="email" placeholder="Es. example@example.com" 
+                                class="w-full px-4 py-3 rounded-md bg-gray-50 border border-slate-300 focus:bg-white focus:ring-2 focus:ring-sky-500 focus:outline-none transition-all" />
+                        </div>
+                    </div>
+                    
+                    <div class="flex justify-end">
+                        <button type="submit" 
+                            class="px-8 py-3 bg-sky-600 hover:bg-sky-700 text-white font-bold rounded-md shadow-md transition-all">
+                            Cerca Account
+                        </button>
+                    </div>
+                
+                    <div *ngIf="errormessageUser" class="mt-4">
+                        <div class="bg-red-50 border-l-4 border-red-500 p-4 rounded shadow-sm flex items-center justify-between">
+                            <span class="text-red-800 text-sm font-medium">{{ errormessageUser }}</span>
+                            <button type="button" (click)="errormessageUser = null" class="text-red-500 hover:text-red-700 text-xl font-bold">
+                                &times;
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div *ngIf="successmessageUser" class="mt-4">
+                        <div class="bg-green-50 border-l-4 border-green-500 p-4 rounded shadow-sm">
+                            <span class="text-green-800 text-sm font-medium">{{ successmessageUser }}</span>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <ng-container *ngIf="this.userlist.length > 0">
+                <div class="flex flex-col gap-4 w-full">
+                    <div *ngFor="let user of userlist" >
+                        <div class="bg-white shadow-2xl border border-solid border-yellow-500 border-l-4 rounded-md p-4 mb-6"> 
+                            <div class="flex flex-col items-start mb-3 bg-sky-400 p-2 rounded-md shadow-sm">
+                                <div class="flex flex-row gap-4 p-1 items-center justify-start">
+                                    <span class="text-xs text-gray-500 font-bold uppercase">
+                                        Cod
+                                    </span>
+                                    <span class="text-sm font-extrabold text-slate-800">
+                                        {{ user.email }}
+                                    </span>
+                                </div>
+
+                            </div>
+
+                            <div class="flex flex-col gap-4">
+                                <div>
+                                    <div class="text-lg font-bold text-black leading-none">
+                                        {{ user.name }} {{ user.surname }}
+                                    </div>
+
+                                    <div *ngIf="user.email" class="text-xs text-sky-600 font-mono mb-1">
+                                        {{ user.email }}
+                                    </div>
+
+                                    <div *ngIf="user.role" class="text-xs font-semibold uppercase tracking-wide text-gray-500 mb-2">
+                                        {{ user.role }}
+                                    </div>
+
+                                    <div *ngIf="user.company" class="text-xs text-gray-600 flex gap-1">
+                                        <span class="font-bold">Azienda:</span> {{ user.company }}
+                                    </div>
+
+                                    <div *ngIf="user.birthdate" class="text-xs text-gray-500 flex gap-1">
+                                        <span class="font-bold">Nata/o il:</span> {{ user.birthdate | date:'dd/MM/yyyy' }}
+                                    </div>
+
+                                    <div *ngIf="user.phonenumber" class="text-xs text-gray-500 flex gap-1">
+                                        <span class="font-bold">Tel:</span> {{ user.phonenumber }}
+                                    </div>
+
+                                    <div *ngIf="user.paymentAddress" class="text-xs text-gray-500 mt-1 p-1 bg-gray-50 rounded border border-gray-100">
+                                        <span class="font-bold block">Indirizzo:</span> {{ user.paymentAddress }}
+                                    </div>
+
+                                    <div class="bg-gray-800 text-green-400 p-2 text-xs font-mono mb-2 overflow-auto">
+                                    DEBUG DATA: {{ user | json }}
+                                </div>
+
+                                    <button type="button" (click)="deleteUser(user._id!)" 
+                                        class="mt-4 px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-bold rounded-md shadow-md transition-all">
+                                        Elimina Utente
+                                    </button>
+                                </div>
+                            </div>
+                        </div>  
+                </div>
+                </div> 
+            </ng-container>
+        </div>
+    </div>
+</div>

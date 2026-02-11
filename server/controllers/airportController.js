@@ -42,15 +42,15 @@ exports.createAirport = async (req, res) => {
             city: city,
             country: country
         });  
+
         await newAirport.save();
         return res.status(200).json({ message: "Nuovo aeroporto creato!"});
     
     } catch (err) {
-        // Gestione errore duplicati (code deve essere univoco)
         if (err.code === 11000) {
             return res.status(400).json({ error: true, errormessage: "Codice aeroporto già esistente" });
         }
+        console.error("Errore creazione aeroporto:", err);
+        return res.status(500).json({ error: true, errormessage: "Errore interno durante la creazione dell'aeroporto" });
     }
-
-
 };

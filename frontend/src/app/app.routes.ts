@@ -10,6 +10,9 @@ import { AirlineRoutesComponent } from './pages/airline-routes/airline-routes';
 import { AirlineAirplanesComponent } from './pages/airline-airplanes/airline-airplanes';
 import { AirlineFlightComponent } from './pages/airline-flight/airline-flight';
 import { AirlineManageFlightComponent } from './pages/airline-manage-flight/airline-manage-flight';
+import { AdminCreateAirportsComponent } from './pages/admin-create-airports/admin-create-airports';
+import { AdminAddUserComponent } from './pages/admin-add-user/admin-add-user';
+
 
 
 //qua ho tutte le rotte posso navigare in base 
@@ -26,6 +29,8 @@ export const routes: Routes = [
     { path: 'airline-Routes', component: AirlineRoutesComponent },
     { path: 'airline-Airplanes', component: AirlineAirplanesComponent },
     { path: 'airline-Flight', component: AirlineFlightComponent },
-    { path: 'airline-Manage', component: AirlineManageFlightComponent}
+    { path: 'airline-Manage', component: AirlineManageFlightComponent},
+    { path: 'admin-create-airports', component: AdminCreateAirportsComponent},
+    { path: 'admin-add-user', component: AdminAddUserComponent}
 
 ];

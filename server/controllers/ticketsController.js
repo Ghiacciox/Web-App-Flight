@@ -66,7 +66,6 @@ exports.getTickets = async (req, res) => {
 
 // POST: Crea biglietto (Solo passeggero)
 exports.createTicket = async (req, res) => {
-    let session = null;
     try {  
         if( req.auth.role !== 'passenger'){ 
             return res.status(400).json({ error: true, errormessage: "Solo i passeggeri possono acquistare i biglietti" });
