@@ -80,7 +80,7 @@ export class BookingService {
     console.log('ticket1' + JSON.stringify(t1), 'ticket2' + JSON.stringify(t2) );
 
     const token=this.httpServices.get_token();
-    console.log('🔑 TOKEN INVIATO:', token);
+    console.log(' TOKEN INVIATO:', token);
 
     return this.http.post<ServerResponse>(
       this.url + '/',

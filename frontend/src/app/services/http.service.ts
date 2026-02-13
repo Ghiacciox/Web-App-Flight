@@ -291,11 +291,17 @@ export class HttpService {
       console.log("Accesso negato: solo gli admin o l'utente stesso possono modificare i dati.");
       return throwError(() => new Error("Accesso negato: solo gli admin o l'utente stesso possono modificare i dati."));
     }   
+    const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
     
     return this.http.patch<UsersResponse>(
       this.url + '/changeData',
       infos,
-      { headers: { 'Authorization' : 'Bearer ' + token } });
+      { headers: headers });
   }
+
+  refresh_token(newToken: string): void {
+    this.token = newToken;
+    localStorage.setItem('postmessages_token', this.token);
+  }   
 
 }

@@ -15,19 +15,6 @@
     <div class="text-center text-sky-500">
       <h1 class="text-4xl font-bold mb-4">Crea il tuo account !</h1>
 
-      <div class="bg-gray-100 p-1 rounded-full flex relative">
-        <button [ngClass]="role === 'passenger' ? 'bg-white text-sky-500' : 'text-gray-500'" 
-          (click)="setRole('passenger')" 
-          class="w-1/2 py-2 rounded-full font-medium transition-colors duration-300">
-          Passeggero
-        </button>
-        <button [ngClass]="role === 'airline' ? 'bg-white text-sky-500' : 'text-gray-500'" 
-          (click)="setRole('airline')" 
-          class="w-1/2 py-2 rounded-full font-medium transition-colors duration-300">
-          Compagnia
-        </button>
-      </div>
-      
       <form [formGroup]="registrationForm" (ngSubmit)="onSubmit()" class="space-y-4 mt-8">
         <!-- collego alla variabile loginForm  che ho nel ts
          (ngSubmit)="onSubmit()" lancia la funzuone onSubmit quando premo il bottone-->
@@ -87,17 +74,6 @@
             formControlName="paymentAddress"
             placeholder="Indirizzo"
             class="w-full  px-5 py-3  rounded-md bg-white border border-slate-300 text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-4 focus:ring-sky-100 focus:border-sky-500 transition-all " 
-          />
-        </div>
-        
-      
-        <div *ngIf="role === 'airline'" class="space-y-4">
-          <input 
-            id="company" 
-            type="text" 
-            formControlName="company"
-            placeholder="Nome compagnia"
-            class="w-full  px-5 py-3  rounded-md bg-white border border-slate-300 text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-4 focus:ring-sky-100 focus:border-sky-500 transition-all "
           />
         </div>
 

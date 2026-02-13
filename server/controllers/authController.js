@@ -79,15 +79,21 @@ exports.changeData= async (req, res) => {
             return res.status(400).json({ error: true, errormessage: "Utente non trovato" });
         }
 
-        if(newPassword && oldPassword){
+        if (newPassword) {
+            if (!oldPassword) {
+                return res.status(400).json({ error: true, errormessage: "Devi inserire la vecchia password per cambiarla" });
+            }
+            console.log("Verifico la vecchia password per l'utente:", acount.email);
             const isOldPasswordValid = acount.validatePassword(oldPassword);
-        if (!isOldPasswordValid) {
-            return res.status(400).json({ error: true, errormessage: "Vecchia password non corretta" });
+            if (!isOldPasswordValid) {
+                return res.status(400).json({ error: true, errormessage: "Vecchia password non corretta" });
+            }
+            console.log("Vecchia password validata con successo. Procedo al cambio.");
+            await acount.setPassword(newPassword);
         }
 
-        acount.setPassword(newPassword);
-        }
-
+        console.log("Dati ricevuti per l'aggiornamento dell'account:", { name, surname, company, phonenumber, paymentAddress, birthdate });
+        
         if(name) acount.name = name;
         if(surname) acount.surname = surname;
         if(company) acount.company = company;
@@ -97,10 +103,30 @@ exports.changeData= async (req, res) => {
          
         await acount.save();
 
-        return res.status(200).json({ error: false, errormessage: "" , message: "Dati aggiornati con successo"});
+        const tokendata = {
+            email: acount.email,
+            role: acount.role,
+            id: acount._id,
+
+            // Dati Passenger
+            name: acount.name,
+            surname: acount.surname,
+            birthdate: acount.birthdate,
+            phonenumber: acount.phonenumber,
+            paymentAddress: acount.paymentAddress,
+            // Dati Airline
+            company: acount.company,
+            // Info di sistema
+            dateofcreation: acount.dateofcreation
+        };
+    //passport ha già validato le credenziali
+    //creo il token JWT
+    console.log("dati cambiati con successo. nuovo token");
+    const token_signed = jsonwebtoken.sign(tokendata, process.env.JWT_SECRET, { expiresIn: '1h' });
+    return res.status(200).json({ error: false, errormessage: "", message: "Dati aggiornati con successo", token: token_signed });
     }catch(err){
-        console.error("Registration error:", err);
-        return res.status(500).json({ error: true, errormessage: "errore durante cambio password" });
+        console.error("Change data error:", err);
+        return res.status(500).json({ error: true, errormessage: "Errore durante il cambio dei dati" });
     } 
 }
 

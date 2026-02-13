@@ -158,3 +158,139 @@ exports.deleteFlight= async (req, res) => {
         return res.status(500).json({ error: true, message: err.message || "Errore interno del server" });
     }
 };
+
+// GET: Statistiche per compagnie aeree
+exports.getAirlineStatistics = async (req, res) => {
+    try {
+        // Solo airline e admin possono vedere le statistiche
+        if (req.auth.role !== 'airline' && req.auth.role !== 'admin') {
+            return res.status(403).json({ 
+                error: true, 
+                errormessage: "Solo le compagnie aeree possono visualizzare le statistiche" 
+            });
+        }
+
+        const { dateFrom, dateTo, email} = req.query;
+
+        let flightFilter = {};
+
+        if (dateFrom || dateTo) {
+            flightFilter.departureTime = {};
+            if (dateFrom) {
+                flightFilter.departureTime.$gte = new Date(dateFrom);
+            }
+            if (dateTo) {
+                flightFilter.departureTime.$lte = new Date(dateTo);
+            }
+        }
+
+        if (req.auth.role === 'airline') {
+            flightFilter.email = req.auth.email;
+        }else if(req.auth.role === 'admin'){
+           flightFilter.email = req.query.email;
+        }
+
+        const flights = await Flight.find(flightFilter).select('_id flightNumber');
+        const flightIds = flights.map(f => f._id);
+
+        if (flightIds.length === 0) {
+            return res.status(200).json({
+                error: false,
+                errormessage: "",
+                totalPassengers: 0,
+                totalRevenue: 0,
+                flightStats: [],
+                routeStats: [] 
+            });
+        }
+
+        const tickets = await Ticket.find({ flight: { $in: flightIds } })
+            .populate({
+                path: 'flight',
+                populate: {
+                    path: 'route',
+                    populate: {
+                        path: 'departureAirport arrivalAirport'
+                    }
+                }
+            });
+
+
+        let totalPassengers = tickets.length;
+        let totalRevenue = 0;
+
+        for (const ticket of tickets) {
+            totalRevenue += ticket.price;
+        }
+
+        let singleStats = {};
+        for(let flight of flights){
+            if(!singleStats[flight._id]){
+                singleStats[flight._id] = {
+                    flightNumber: flight.flightNumber,
+                    totalPassengers: 0,
+                    revenue: 0,
+                    numberOfFlight: 0,
+                    averageRevenuePerPassenger: 0,
+                    averagePassengersPerFlight: 0
+                }
+            }
+            singleStats[flight._id].totalPassengers = flight.bookedSeats.length;
+            for(let ticket of tickets){
+                if(ticket.flight.toString() === flight._id.toString()){
+                    singleStats[flight._id].revenue += ticket.price;
+                    singleStats[flight._id].numberOfFlight = 1;
+                }
+            }
+        }
+
+        for (const flight of flights) {
+            if(singleStats[flight._id].totalPassengers > 0){
+                singleStats[flight._id].averageRevenuePerPassenger = singleStats[flight._id].revenue / singleStats[flight._id].totalPassengers;
+            }
+            if(singleStats[flight._id].numberOfFlight > 0){
+                singleStats[flight._id].averagePassengersPerFlight = singleStats[flight._id].totalPassengers / singleStats[flight._id].numberOfFlight;
+            }
+        }
+
+        let popularRoutes = {};
+        for(let ticket of tickets){
+            const routeId = ticket.route._id.toString();
+            if(!popularRoutes[routeId]){
+                popularRoutes[routeId] = {
+                    departureCity: ticket.route.departureCity,
+                    arrivalCity: ticket.route.arrivalCity,
+                    totalPassengers: 0,
+                    revenue: 0
+                }
+            }
+            popularRoutes[routeId].totalPassengers += 1;
+            popularRoutes[routeId].revenue += ticket.price;
+        }
+
+        let routeStats = [];
+        for (let routeId in popularRoutes) {
+            routeStats.push(popularRoutes[routeId]);
+        }
+    
+        routeStats.sort(function(a, b) {
+            return b.totalPassengers - a.totalPassengers;
+        });
+        
+        return res.status(200).json({
+            error: false,
+            totalPassengers,
+            totalRevenue,
+            routeStats,
+            singleStats
+        });
+
+    } catch (err) {
+        console.error("Error fetching statistics:", err);
+        return res.status(500).json({ 
+            error: true, 
+            errormessage: "Errore durante il recupero delle statistiche",
+            details: err.message 
+        });
+    }
+};

@@ -7,16 +7,19 @@
                     Bau<span class="text-yellow-500">Flights</span>
                 </div>
 
-                <div class="flex items-center space-x-6 font-medium">
-                    <ng-container *ngIf="isLoggedIn">
-                        <a routerLink="/profile" class="hover:text-yellow-500 transition-colors cursor-pointer">Profilo</a>
+                <div class="flex items-center space-x-6">
+                    <ng-container *ngIf="!this.http.isAuthenticated()">
+                        <a routerLink="/login" class="hover:text-yellow-500 transition-colors"> login</a>
+                    </ng-container>
+                    
+                    <ng-container *ngIf="this.http.isAuthenticated() && this.http.is_passenger()">
+                        <a routerLink="/login" class="hover:text-yellow-500 transition-colors"> Profilo</a>
+                        <a routerLink="/bookingPrenotation" class="hover:text-yellow-500 transition-colors"> Prenotazioni</a>
                     </ng-container>
 
-                    <ng-container *ngIf="!isLoggedIn">
-                        <a routerLink="/login" class="hover:text-yellow-500 transition-colors cursor-pointer">Accedi</a>
+                    <ng-container *ngIf="this.http.isAuthenticated()">
+                        <a (click)="this.http.logout()" class="hover:text-yellow-500 transition-colors"> logout</a>
                     </ng-container>
-
-                    <a routerLink="/cart" class="hover:text-yellow-500 transition-colors cursor-pointer">Carrello</a>
                 </div>
             </div>
         </div>

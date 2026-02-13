@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http'; // Non dimenticare l'import!
-import { Airport, ServerResponse } from './search.service';
+import { Airport} from './search.service';
 import { HttpService } from './http.service';
 
 

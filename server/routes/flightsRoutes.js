@@ -14,5 +14,6 @@ router.delete('/:id', checkJwt, flightsController.deleteFlight);
 
 router.patch('/:id', checkJwt, flightsController.updateFlight);
 
+router.get('/statistics', checkJwt, flightsController.getAirlineStatistics);
 
 module.exports = router;

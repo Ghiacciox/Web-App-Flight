@@ -1,0 +1,205 @@
+<div class="min-h-screen flex flex-col bg-gray-100">
+    
+   <nav class="bg-sky-600 text-white shadow-lg sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <div class="flex-shrink-0 font-bold text-2xl tracking-wider cursor-pointer" routerLink="/home">
+                    Bau<span class="text-yellow-500">Flights</span>
+                </div>
+
+                <div class="flex items-center space-x-6">
+                    <ng-container *ngIf="!this.http.isAuthenticated()">
+                        <a routerLink="/login" class="hover:text-yellow-500 transition-colors"> login</a>
+                    </ng-container>
+                    
+                    <ng-container *ngIf="this.http.isAuthenticated() && this.http.is_passenger()">
+                        <a routerLink="/login" class="hover:text-yellow-500 transition-colors"> Profilo</a>
+                        <a routerLink="/bookingPrenotation" class="hover:text-yellow-500 transition-colors"> Prenotazioni</a>
+                    </ng-container>
+
+                    <ng-container *ngIf="this.http.isAuthenticated()">
+                        <a (click)="this.http.logout()" class="hover:text-yellow-500 transition-colors"> logout</a>
+                    </ng-container>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="flex-grow bg-sky-400 p-4 md:p-8">
+        <div class="max-w-7xl mx-auto">
+            
+            <!-- FILTRI DI RICERCA -->
+            <div class="bg-white shadow-lg rounded-md p-6 border-yellow-500 border-l-4 mb-6">
+                <div class="flex flex-row items-center justify-center mb-4 bg-sky-400 p-2 rounded-md shadow-sm">
+                    <span class="text-lg text-sky-800 font-bold tracking-wider">Filtri Statistiche</span>
+                </div>
+                
+                <form [formGroup]="searchForm" (ngSubmit)="onSubmit()">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                        <div>
+                            <label class="block text-xs font-bold text-gray-500 uppercase mb-1 ml-1">Data Inizio</label>
+                            <input type="date" formControlName="datefrom" 
+                                class="w-full px-4 py-3 rounded-md bg-gray-50 border border-slate-300 focus:bg-white focus:ring-2 focus:ring-sky-500 focus:outline-none transition-all" />
+                        </div>
+                        
+                        <div>
+                            <label class="block text-xs font-bold text-gray-500 uppercase mb-1 ml-1">Data Fine</label>
+                            <input type="date" formControlName="dateTo" 
+                                class="w-full px-4 py-3 rounded-md bg-gray-50 border border-slate-300 focus:bg-white focus:ring-2 focus:ring-sky-500 focus:outline-none transition-all" />
+                        </div>
+                        
+                        <div>
+                            <label class="block text-xs font-bold text-gray-500 uppercase mb-1 ml-1">Email Compagnia (Admin)</label>
+                            <input type="email" formControlName="email" placeholder="Es. airline@example.com" 
+                                class="w-full px-4 py-3 rounded-md bg-gray-50 border border-slate-300 focus:bg-white focus:ring-2 focus:ring-sky-500 focus:outline-none transition-all" />
+                        </div>
+                    </div>
+                    
+                    <div class="flex justify-end">
+                        <button type="submit" 
+                            class="px-8 py-3 bg-sky-600 hover:bg-sky-700 text-white font-bold rounded-md shadow-md transition-all">
+                            Carica Statistiche
+                        </button>
+                    </div>
+                </form>
+
+                <!-- MESSAGGI -->
+                <div *ngIf="errorMessage" class="mt-4">
+                    <div class="bg-red-50 border-l-4 border-red-500 p-4 rounded shadow-sm flex items-center justify-between">
+                        <span class="text-red-800 text-sm font-medium">{{ errorMessage }}</span>
+                        <button type="button" (click)="errorMessage = null" class="text-red-500 hover:text-red-700 text-xl font-bold">
+                            &times;
+                        </button>
+                    </div>
+                </div>
+                
+                <div *ngIf="successMessage" class="mt-4">
+                    <div class="bg-green-50 border-l-4 border-green-500 p-4 rounded shadow-sm">
+                        <span class="text-green-800 text-sm font-medium">{{ successMessage }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- STATISTICHE TOTALI -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                <div class="bg-white shadow-lg rounded-md p-6 border-yellow-500 border-l-4">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-xs font-bold text-gray-500 uppercase mb-1">Passeggeri Totali</p>
+                            <p class="text-3xl font-bold text-sky-600">{{ totalPassengers }}</p>
+                        </div>
+                        <div class="bg-sky-100 p-4 rounded-full">
+                            <svg class="w-8 h-8 text-sky-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white shadow-lg rounded-md p-6 border-yellow-500 border-l-4">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-xs font-bold text-gray-500 uppercase mb-1">Ricavo Totale</p>
+                            <p class="text-3xl font-bold text-green-600">€ {{ totalMoney | number:'1.2-2' }}</p>
+                        </div>
+                        <div class="bg-green-100 p-4 rounded-full">
+                            <svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- STATISTICHE VOLI -->
+            <div class="bg-white shadow-lg rounded-md p-6 border-yellow-500 border-l-4 mb-6">
+                <div class="flex flex-row items-center justify-center mb-4 bg-sky-400 p-2 rounded-md shadow-sm">
+                    <span class="text-lg text-sky-800 font-bold tracking-wider">Statistiche per Numero di Volo</span>
+                </div>
+
+                <div *ngIf="flightStat.length === 0" class="text-center text-gray-500 py-8">
+                    Nessun dato disponibile per i voli
+                </div>
+
+                <div *ngIf="flightStat.length > 0" class="overflow-x-auto">
+                    <table class="w-full">
+                        <thead>
+                            <tr class="bg-gray-100 border-b-2 border-sky-600">
+                                <th class="px-4 py-3 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Numero Volo</th>
+                                <th class="px-4 py-3 text-center text-xs font-bold text-gray-600 uppercase tracking-wider">N° Voli</th>
+                                <th class="px-4 py-3 text-center text-xs font-bold text-gray-600 uppercase tracking-wider">Passeggeri Tot.</th>
+                                <th class="px-4 py-3 text-center text-xs font-bold text-gray-600 uppercase tracking-wider">Media Pass./Volo</th>
+                                <th class="px-4 py-3 text-right text-xs font-bold text-gray-600 uppercase tracking-wider">Ricavo Totale</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr *ngFor="let flight of flightStat; let i = index" 
+                                [class.bg-gray-50]="i % 2 === 0"
+                                class="border-b border-gray-200 hover:bg-sky-50 transition-colors">
+                                <td class="px-4 py-3 text-sm font-mono text-sky-700 font-bold">{{ flight.flightNumber }}</td>
+                                <td class="px-4 py-3 text-sm text-center font-semibold text-gray-800">{{ flight.numberOfFlights }}</td>
+                                <td class="px-4 py-3 text-sm text-center font-semibold text-sky-600">{{ flight.totalPassengers }}</td>
+                                <td class="px-4 py-3 text-sm text-center">
+                                    <span class="px-3 py-1 rounded-full text-xs font-bold bg-purple-100 text-purple-800">
+                                        {{ flight.averagePassengersPerFlight | number:'1.1-1' }}
+                                    </span>
+                                </td>
+                                <td class="px-4 py-3 text-sm text-right font-semibold text-green-600">€ {{ flight.totalRevenue | number:'1.2-2' }}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- STATISTICHE ROTTE -->
+            <div class="bg-white shadow-lg rounded-md p-6 border-yellow-500 border-l-4">
+                <div class="flex flex-row items-center justify-center mb-4 bg-sky-400 p-2 rounded-md shadow-sm">
+                    <span class="text-lg text-sky-800 font-bold tracking-wider">Statistiche per Rotta</span>
+                </div>
+
+                <div *ngIf="routeStat.length === 0" class="text-center text-gray-500 py-8">
+                    Nessun dato disponibile per le rotte
+                </div>
+
+                <div *ngIf="routeStat.length > 0" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <div *ngFor="let route of routeStat" 
+                        class="bg-gradient-to-br from-sky-50 to-white border border-sky-200 rounded-lg p-4 shadow-md hover:shadow-xl transition-all">
+                        
+                        <div class="flex items-center justify-between mb-3">
+                            <div class="flex items-center gap-2 flex-wrap">
+                                <div class="text-center">
+                                    <div class="text-xs font-bold text-gray-500 uppercase">{{ route.departureCode }}</div>
+                                    <div class="text-sm text-gray-600">{{ route.departureCity }}</div>
+                                </div>
+                                <svg class="w-5 h-5 text-yellow-500 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                    <path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z"></path>
+                                </svg>
+                                <div class="text-center">
+                                    <div class="text-xs font-bold text-gray-500 uppercase">{{ route.arrivalCode }}</div>
+                                    <div class="text-sm text-gray-600">{{ route.arrivalCity }}</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="space-y-2 mt-4">
+                            <div class="flex justify-between items-center py-2 border-t border-sky-100">
+                                <span class="text-xs font-bold text-gray-500 uppercase">Passeggeri</span>
+                                <span class="text-sm font-semibold text-sky-600">{{ route.totalPassengers }}</span>
+                            </div>
+
+                            <div class="flex justify-between items-center pt-2 border-t border-sky-200">
+                                <span class="text-xs font-bold text-gray-500 uppercase">Ricavo Totale</span>
+                                <span class="text-lg font-bold text-green-600">€ {{ route.totalRevenue | number:'1.2-2' }}</span>
+                            </div>
+                        </div>
+
+                        <div class="mt-3 pt-3 border-t border-gray-200">
+                            <div class="text-xs text-gray-400 font-mono">ID: {{ route.routeId }}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>

@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { SearchService, ServerResponse } from '../../services/search.service';
 import { CommonModule } from '@angular/common';
-import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { ReactiveFormsModule } from '@angular/forms';
 import { Router, RouterModule, ActivatedRoute} from '@angular/router';
 import { HttpService } from '../../services/http.service';
 import { BehaviorSubject } from 'rxjs';
@@ -37,8 +37,7 @@ export class FlightsearchComponent implements OnInit {
   constructor(
     private router: Router,
     private searchService: SearchService,
-    private http: HttpService,
-    private fb: FormBuilder,
+    public http: HttpService,
     private urls: ActivatedRoute,
     private bookingService: BookingService) { 
   }
