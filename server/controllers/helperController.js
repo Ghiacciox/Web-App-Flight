@@ -227,12 +227,13 @@ const findFlightsHelper = async (flightNumber, from, to, initialDate , finalDate
 }
 
 
-const seatReleaser = async (flightID, seat, flightClass) => {
+const seatReleaser = async (flightID, seat, flightClass, io = null) => {
     try {
         const selectedSeat ={
             seat: seat,
             travelClass: flightClass
         };
+
         await Flight.updateOne(     
             { _id: flightID },
             { 
@@ -242,6 +243,18 @@ const seatReleaser = async (flightID, seat, flightClass) => {
         }
         );
         console.log("posto rilasciato con successo :", seat, flightClass, "nel volo", flightID);
+
+         if (io) {
+            io.to(`flight:${flightID}`).emit('seat-update', {
+                flightId: flightID.toString(),
+                seat: seat,
+                class: flightClass,
+                available: true,
+                timestamp: new Date()
+            });
+            console.log(` Socket emesso: posto ${seat} disponibile sul volo ${flightID}`);
+        }
+
         return true;
     }catch (err) {
         console.log("Errore helper validazione posti:", err);
@@ -250,7 +263,7 @@ const seatReleaser = async (flightID, seat, flightClass) => {
 };
 
 //creazione biglietto
-const createTicketHelper = async (userId, flightId, seat, flightClass, extras, price) => {
+const createTicketHelper = async (userId, flightId, seat, flightClass, extras, price, io = null) => {
 
     const selectedSeat ={
         seat: seat,
@@ -290,11 +303,25 @@ const createTicketHelper = async (userId, flightId, seat, flightClass, extras, p
     });  
 
     await newTicket.save();
+
+    if (io) {
+        io.to(`flight:${flightId}`).emit('seat-updated', {
+            //mando messaggio con aggiornamento posti a tutti i client connessi alla stanza del volo,
+            //così possono aggiornare la visualizzazione dei posti in tempo reale
+            flightId: flightId.toString(),
+            seat: seat,
+            class: flightClass,
+            available: false,
+            timestamp: new Date()
+        });
+        console.log(` Socket emesso: posto ${seat} occupato sul volo ${flightId}`);
+    }
+
     return newTicket
 }
 
 
-const flightDeleterHelper = async (flightId, auth) => {
+const flightDeleterHelper = async (flightId, auth, io=null) => {
     try {
         const flight = await Flight.findById(flightId);
         if (!flight) return { error: true, message: "Volo non trovato" }    ;
@@ -314,10 +341,21 @@ const flightDeleterHelper = async (flightId, auth) => {
                 { status: 'cancelled' }
             );
         }
+        
 
         console.log(`Cancellati ${tickets.length} biglietti associati al volo ${flightId}`);
         await Flight.findByIdAndUpdate(flightId, { active: false }, { new: true });
         console.log(`Volo ${flightId} cancellato (active: false)`);
+
+         if (io) {
+            io.to(`flight:${flight._id}`).emit('flight-cancelled', {
+                flightId: flight._id.toString(),
+                flightNumber: flight.flightNumber,
+                message: 'Il volo è stato cancellato',
+                timestamp: new Date()
+            });
+            console.log(` Socket emesso: volo ${flight.flightNumber} cancellato`);
+        }
 
         return { message: "Volo cancellato", flight: flight };
     } catch (err) {
@@ -325,7 +363,7 @@ const flightDeleterHelper = async (flightId, auth) => {
     }
 };
 
-const deleteTicketHelper = async (ticketID, auth) => {
+const deleteTicketHelper = async (ticketID, auth, io = null) => {
     try {
         const ticketToDelete = await Ticket.findById(ticketID);
         if (!ticketToDelete) throw new Error("Biglietto non trovato");
@@ -340,7 +378,8 @@ const deleteTicketHelper = async (ticketID, auth) => {
         const released = await seatReleaser(
             ticketToDelete.flight, 
             ticketToDelete.seat, 
-            ticketToDelete.class
+            ticketToDelete.class,
+            io
         );
 
         if (!released) throw new Error("Errore durante il rilascio del posto sul volo");

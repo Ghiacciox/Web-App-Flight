@@ -49,13 +49,14 @@ exports.createBooking = async (req, res) => {
             }
         }
 
-        let firstTicket = await createTicketHelper(userId, tick1.flightId, tick1.seat, tick1.flightClass, tick1.extras, tick1.price);
+        let firstTicket = await createTicketHelper(userId, tick1.flightId, tick1.seat, tick1.flightClass, tick1.extras, tick1.price, req.io);
+        
         let secondTicket = null;
         if(tick2){
             try{
-                secondTicket = await createTicketHelper(userId, tick2.flightId, tick2.seat, tick2.flightClass, tick2.extras, tick2.price);
+                secondTicket = await createTicketHelper(userId, tick2.flightId, tick2.seat, tick2.flightClass, tick2.extras, tick2.price, req.io);
             }catch(err){
-                await seatReleaser(firstTicket.flight, firstTicket.seat, firstTicket.flightClass);
+                await seatReleaser(firstTicket.flight, firstTicket.seat, firstTicket.flightClass, req.io);
                 await Ticket.findByIdAndDelete(firstTicket._id);
                 
                 throw new Error("Impossibile prenotare il ritorno, annullamento andata");
@@ -68,7 +69,6 @@ exports.createBooking = async (req, res) => {
             tickets: [firstTicket._id, secondTicket ? secondTicket._id : null].filter(t => t != null),
             totalPrice: ((firstTicket ? firstTicket.price : 0) + (secondTicket ? secondTicket.price : 0))
         });
-
         await booking.save();
 
         return res.status(200).json({ error: false, errormessage: "" , message: "Prenotazione creata con successo", bookingId: booking._id});
@@ -174,14 +174,15 @@ exports.cancelBooking = async (req, res) => {
             let deleting = await seatReleaser(
                 seatTicket.flight, 
                 seatTicket.seat, 
-                seatTicket.class 
+                seatTicket.class,
+                req.io
             );
             
             if(!deleting)
                 throw new Error("Errore rilascio posto");
         }       
         await myBooking.save();
-        
+
         res.status(200).json({ error: false, errormessage: "" , message: "Prenotazione cancellata con successo"});  
     } catch (err) {
         console.log(err);

@@ -73,7 +73,6 @@ export class BookingService {
   public selectedFlightSource: Result | null = null;
   public selectedBookingSource: Booking | null = null;
 
-  
 
   //prende mail e pssw li unisce con : e le codifica in base64
   createTicket(t1: ticketInfo, t2?: ticketInfo | null): Observable<ServerResponse> {

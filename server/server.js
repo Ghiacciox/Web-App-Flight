@@ -3,6 +3,7 @@ require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
+const socketIo = require('socket.io'); 
 
 //rotte
 const airplaneRoutes = require('./routes/airplaneRoutes');
@@ -19,7 +20,6 @@ const url = require('url');
 const fs = require('fs');
 const jsonwebtoken = require("jsonwebtoken"); 
 const { expressjwt: jwt } = require('express-jwt');
-const io = require('socket.io'); 
 
 
 const passport = require("passport");
@@ -33,6 +33,23 @@ const seed = require("./seed");
 const PORT = process.env.PORT || 3000;
 const app = express();
 
+///*websocket setup*/
+let io = undefined; 
+//preparo il socket io a essere inizializzato dopo la connessione al database, così posso passarlo alle funzioni helper che ne hanno bisogno senza doverlo importare direttamente nei controller
+
+// Middleware
+app.use(cors()); // Permette al frontend di chiamarci
+app.use(express.json()); // Permette di leggere i JSON in arrivo
+
+  
+// Middleware per loggare tutte le richieste e allegare l'istanza di Socket.IO alla richiesta
+app.use((req, res, next) => {
+    console.log("------------------------------------------------");
+    console.log("Richiesta:", req.method, req.url);
+    req.io = io; //istanza di Socket.IO alla richiesta
+    next();
+});
+
 
 //middleware express
 //si arrangia per parsare json 
@@ -40,22 +57,14 @@ const app = express();
 //per cookie
 //per file statici
 
-// Middleware
-app.use(cors()); // Permette al frontend di chiamarci
-app.use(express.json()); // Permette di leggere i JSON in arrivo
 
 
 // Log delle richieste (stampo tutto per debugg)
-app.use((req, res, next) => {
-    console.log("------------------------------------------------");
-    console.log("Richiesta:", req.method, req.url);
-    next();
-});
+
 
 // Rotte
 //posso mappare url a funzioni
 //esempio app.get('/path', (req, res) => {})
-
 app.use('/api/airplanes', airplaneRoutes);
 app.use('/api/airports', airportRoutes);
 app.use('/api/auth', authRoutes);
@@ -66,7 +75,7 @@ app.use('/api/tickets', ticketsRoutes);
 
 // Rotta di prova base
 app.get('/', (req, res) => {
-  res.send('Ciao! Il Backend TAW è attivo ✈️');
+  res.send('Ciao! Il Backend TAW è attivo e funzionante!');
 });
 
 // Gestore 404 (Pagina non trovata)
@@ -91,6 +100,7 @@ passport.use(new passportHTTP.BasicStrategy(function (email, password, done) {
     });
 }));
 
+
 // Gestore errori centralizzato (cattura anche errori JWT e Passport)
 app.use((err, req, res, next) => {
     console.error("Errore rilevato:", JSON.stringify(err));
@@ -107,29 +117,87 @@ app.use((err, req, res, next) => {
     });
 });
 
+const mongoUrl = process.env.MONGO_URL || 'mongodb://localhost:27017/bau_flightdb';
 
-/*
-//creo il webserver
-let server = http.createServer((req, res) => {
-  const parsedUrl = url.parse(req.url, true);
-  const method = req.method;
-  const headers = req.headers;
+mongoose.connect(mongoUrl)
+    .then(async () => {
+        console.log('✅ Connesso al DB!');
+        
+        const existingAdmin = await user.findOne({ email: "admin@bau-flights.it" });
+        if (!existingAdmin) {
+            console.log("Admin non trovato, creazione di un admin di default");
+            await seed();
+            console.log("Seeding del database completato");
+        }
+    })
+    .then(() => {
+        
+        let server = http.createServer(app);
 
- let path = parsedUrl.pathname;  
-});
+        // Initialize Socket.io
+        io = socketIo(server, { //creo istanza di socket 
+            cors: {
+                origin: process.env.CORS_ORIGIN || "http://localhost:4200",
+                methods: ["GET", "POST", "DELETE", "PATCH"],
+            }
+        });
 
-//quando starto il server 
-server.listen(8080, () => {
-  console.log('Server in ascolto sulla porta 8080');
-}); 
-*/
+        io.on('connection', (socket) => { //connessione al socket
+            console.log('Client connesso al WebSocket: ' + socket.id);
+            
+            // Join flight room
+            socket.on('join-flight', (flightId) => {
+              //resto in attesa che il client mi dica a quale volo vuole unirsi, così posso metterlo nella stanza giusta
+                socket.join(`flight:${flightId}`); 
+                //entro nella stanza del volo
+                console.log(`${socket.id} si è unito al volo ${flightId}`);
+                socket.emit('joined-flight', { flightId }); 
+                //confermo al client di essere entrato nella stanza del volo
+               //mando un messaggio solo al client che si è unito alla stanza del volo, 
+            });
+
+            // Leave flight room
+            socket.on('leave-flight', (flightId) => {
+              //aspetto che il client mi dica a quale volo vuole uscire, così posso toglierlo dalla stanza giusta
+                socket.leave(`flight:${flightId}`);
+                //tolgo dalla stanza del volo
+                console.log(`${socket.id} ha lasciato il volo ${flightId}`);
+            });
+
+            // Ping-pong
+            socket.on('ping', () => {
+                socket.emit('pong');
+            });
+
+            socket.on('disconnect', () => {
+                console.log('❌ Client disconnesso: ' + socket.id);
+            });
+
+            socket.on('error', (error) => {
+                console.error('❌ Errore WebSocket:', error);
+            });
+        });
+
+        // Start server
+        server.listen(PORT, () => {
+            console.log(` Server HTTP avviato sulla porta ${PORT}`);
+            console.log(` WebSocket pronto su ws://localhost:${PORT}`);
+        });
+    })
+    .catch(err => {
+        console.error('❌ Errore critico connessione Mongo:', err);
+        process.exit(1);
+    });
+
 
 // Connessione al Database
 // Nota: process.env.MONGO_URL viene dal docker-compose.yml
 //prendo il nome dal docker compose oppure lo prendo dal locale
 
-const mongoUrl = process.env.MONGO_URL || 'mongodb://localhost:27017/bau_flightdb';
+//const mongoUrl = process.env.MONGO_URL || 'mongodb://localhost:27017/bau_flightdb';
 
+
+/*
 mongoose.connect(mongoUrl)
   .then(async () => {
     console.log('✅ Connesso al DB!');
@@ -159,13 +227,14 @@ mongoose.connect(mongoUrl)
     } catch (err) {
       console.error("Errore controllo admin o seeding:", err);
     }
+    
 
     // AVVIO SERVER
     // Lo avvio solo se la connessione al DB è riuscita
     app.listen(PORT, () => {
       console.log(`🚀 Server avviato sulla porta ${PORT}`);
     });
-  }) 
+  })
   .catch(err => {
     console.error('❌ Errore critico connessione Mongo:', err);
     process.exit(1); //chiudo server se non riesco a connettermi al db
@@ -174,7 +243,7 @@ mongoose.connect(mongoUrl)
     console.log('Tentativo di connessione MongoDB terminato');
   });
 
-
+*/
   
 
 /**

@@ -17,6 +17,9 @@ export class PathGuardGuardUser implements CanActivate {
   }
 }
 
+@Injectable({
+  providedIn: 'root'
+})
 export class PathGuardGuardAdmin implements CanActivate {
   constructor(private http: HttpService, private router: Router) {}
 
@@ -29,6 +32,10 @@ export class PathGuardGuardAdmin implements CanActivate {
   }
 }
 
+
+@Injectable({
+  providedIn: 'root'
+})
 export class PathGuardGuardAirline implements CanActivate {
   constructor(private http: HttpService, private router: Router) {}
 
