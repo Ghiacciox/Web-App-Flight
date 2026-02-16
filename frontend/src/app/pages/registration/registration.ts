@@ -105,7 +105,7 @@ utenteeee
             alert('Registrazione fallita: ' + response.errormessage);
             return;
           }
-          console.log('Registrazione successful:', response.token);
+          console.log('Registrazione successful:',response);
           //this.router.navigate(['/home']);
           window.location.href = '/home';
         },

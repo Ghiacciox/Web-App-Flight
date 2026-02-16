@@ -42,7 +42,7 @@ export class LoginComponent {
             alert('Login fallito: ' + response.errormessage);
             return;
           }
-          console.log('Login successful:', response.token);
+          console.log('Login successful:', response);
           //this.router.navigate(['/home']);
           window.location.href = '/home';
         },

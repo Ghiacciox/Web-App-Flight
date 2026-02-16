@@ -333,7 +333,6 @@ const flightDeleterHelper = async (flightId, auth, io=null) => {
 
         const tickets = await Ticket.find({ flight: flight._id }).select('_id'); 
     
-
         const ticketIds = tickets.map(t => t._id);
         if (tickets.length > 0) {
             await Booking.updateMany(

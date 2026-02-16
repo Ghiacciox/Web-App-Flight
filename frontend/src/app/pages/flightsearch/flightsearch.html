@@ -1,6 +1,6 @@
 <div class="min-h-screen flex flex-col bg-gray-100">
     
-    <nav class="bg-sky-600 text-white shadow-lg sticky top-0 z-50">
+      <nav class="bg-sky-600 text-white shadow-lg sticky top-0 z-50">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex items-center justify-between h-16">
                 <div class="flex-shrink-0 font-bold text-2xl tracking-wider cursor-pointer" routerLink="/home">
@@ -13,11 +13,11 @@
                     </ng-container>
                     
                     <ng-container *ngIf="this.http.isAuthenticated() && this.http.is_passenger()">
-                        <a routerLink="/login" class="hover:text-yellow-500 transition-colors"> Profilo</a>
                         <a routerLink="/bookingPrenotation" class="hover:text-yellow-500 transition-colors"> Prenotazioni</a>
                     </ng-container>
 
                     <ng-container *ngIf="this.http.isAuthenticated()">
+                        <a routerLink="/profile" class="hover:text-yellow-500 transition-colors"> Profilo</a>
                         <a (click)="this.http.logout()" class="hover:text-yellow-500 transition-colors"> logout</a>
                     </ng-container>
                 </div>

@@ -13,11 +13,11 @@
                     </ng-container>
                     
                     <ng-container *ngIf="this.http.isAuthenticated() && this.http.is_passenger()">
-                        <a routerLink="/login" class="hover:text-yellow-500 transition-colors"> Profilo</a>
                         <a routerLink="/bookingPrenotation" class="hover:text-yellow-500 transition-colors"> Prenotazioni</a>
                     </ng-container>
 
                     <ng-container *ngIf="this.http.isAuthenticated()">
+                        <a routerLink="/profile" class="hover:text-yellow-500 transition-colors"> Profilo</a>
                         <a (click)="this.http.logout()" class="hover:text-yellow-500 transition-colors"> logout</a>
                     </ng-container>
                 </div>
@@ -203,10 +203,6 @@
                                     <div *ngIf="user.paymentAddress" class="text-xs text-gray-500 mt-1 p-1 bg-gray-50 rounded border border-gray-100">
                                         <span class="font-bold block">Indirizzo:</span> {{ user.paymentAddress }}
                                     </div>
-
-                                    <div class="bg-gray-800 text-green-400 p-2 text-xs font-mono mb-2 overflow-auto">
-                                    DEBUG DATA: {{ user | json }}
-                                </div>
 
                                     <button type="button" (click)="deleteUser(user._id!)" 
                                         class="mt-4 px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-bold rounded-md shadow-md transition-all">

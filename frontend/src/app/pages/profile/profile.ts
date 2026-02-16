@@ -47,12 +47,15 @@ export class ProfileComponent implements OnInit{
 
 
   ngOnInit(): void {
+    const rawDate = this.http.get_birthdate();
+    const dateForInput = rawDate ? new Date(rawDate).toISOString().split('T')[0] : '';
+
     this.newdata.patchValue({
       email: this.http.get_email(),
       role: this.http.get_role(),
       name: this.http.get_name(),
       surname: this.http.get_surname(),
-      birthdate: this.http.get_birthdate(),
+      birthdate: dateForInput,
       phonenumber: this.http.get_phonenumber(),
       paymentAddress: this.http.get_paymentAddress(),
       company: this.http.get_company()
@@ -87,10 +90,17 @@ export class ProfileComponent implements OnInit{
         }
 
         const formDate = this.newdata.value.birthdate; 
-        const oldDate = this.http.get_birthdate();
+        const rawOldDate = this.http.get_birthdate(); //stringa
 
-        if (formDate !== oldDate) {
-             changedData.birthdate = formDate;
+        let oldDateFormatted = '';
+
+        if (rawOldDate) {
+            oldDateFormatted = new Date(rawOldDate).toISOString().split('T')[0];
+        }
+
+        // Ora il confronto funziona e non crasha
+        if (formDate !== oldDateFormatted) {
+            changedData.birthdate = formDate;
         }
 
         if (this.newdata.value.newPassword) {

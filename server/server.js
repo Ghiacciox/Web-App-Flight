@@ -16,6 +16,7 @@ const ticketsRoutes = require('./routes/ticketRoutes');
 
 //altre cose che servono
 const http = require('http');
+
 const url = require('url');
 const fs = require('fs');
 const jsonwebtoken = require("jsonwebtoken"); 
@@ -85,7 +86,10 @@ app.use((req, res) => {
 
 
 //strategia per usare dentro le rotte di passport
-passport.use(new passportHTTP.BasicStrategy(function (email, password, done) {
+passport.use(new passportHTTP.BasicStrategy({ passReqToCallback: true },function (req,email, password, done) {
+
+    console.log("Headers:", req.headers);
+
     console.log("Nuovo tentativo di login di: "+ email);
     user.findOne({ email: email }).then((user) => {
         if (!user) {

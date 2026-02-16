@@ -88,8 +88,9 @@ export class AdminAddUserComponent {
       };
 
       this.http.register(newUser).subscribe({  
-        next: () => {
-            this.successMessage = 'Utente creato con successo! ';
+        next: (result) => {
+            this.successMessage = 'Utente creato con successo!';
+            console.log('Utente creato con successo:', result);
             this.newUserForm.reset();
         },
         error: (error) => {
@@ -115,6 +116,7 @@ export class AdminAddUserComponent {
         } else {
           this.userlist = response.users;
           this.successmessageUser = 'Utenti trovati con successo!';
+          console.log('Utenti trovati:', response);
           console.log('Utenti trovati:', this.userlist);
         }
         this.cdr.detectChanges();

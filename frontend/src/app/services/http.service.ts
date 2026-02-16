@@ -96,11 +96,11 @@ export class HttpService {
       headers: new HttpHeaders({
         authorization: 'Basic ' + btoa( mail + ':' + password),
         'cache-control': 'no-cache',
-        'Content-Type':  'application/x-www-form-urlencoded',
+        'Content-Type': 'application/json' 
       })
     };
 
-    return this.http.get<ReceivedToken>( this.url + '/login',  options, ).pipe(
+    return this.http.post<ReceivedToken>( this.url + '/login', {}, options ).pipe(
       /*
       tap è un operatore di RxJS fondamentale qui. 
       Permette di eseguire delle azioni (side effects)
@@ -294,7 +294,7 @@ export class HttpService {
     const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
     
     return this.http.patch<UsersResponse>(
-      this.url + '/changeData',
+      this.url + '/users',
       infos,
       { headers: headers });
   }
