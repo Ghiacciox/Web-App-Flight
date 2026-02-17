@@ -175,11 +175,9 @@ const findScaleFlightsHelper = async ( from, to, initialDate , finalDate , compa
         const result_to = [];
         for(let r of result_from){
             let secondFilter = {};
-            // Correzione: usa secondFilter invece di filter per la compagnia
             
             if (filter.company) secondFilter.company = filter.company;
                     
-            // Correzione: usa gli ObjectId invece delle stringhe
             const secondRoute = await Route.find({
 
                 departureAirport: r.route.arrivalAirport._id,
@@ -202,7 +200,7 @@ const findScaleFlightsHelper = async ( from, to, initialDate , finalDate , compa
             const scalo = await Flight.find(secondFilter)
                 .populate('airplane')
                 .populate({
-                path: 'company',  // ✅ AGGIUNGI QUESTO
+                path: 'company',  
                 select: 'company email role'
             })
                 .populate({

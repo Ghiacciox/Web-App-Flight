@@ -12,6 +12,7 @@ exports.createBooking = async (req, res) => {
         }
 
         const {tick1, tick2} = req.body; //due oggetti biglietti opzionali o sono due o è uno
+        console.log(req.body);
 
         if(tick1 == null){ //il primo è obbligatorio
             return res.status(400).json({ error: true, errormessage: "Non ci sono biglietti" });

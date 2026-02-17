@@ -110,7 +110,7 @@ export interface Flight {
 */
 
 
-//teoricamente ho il token salvato in ogni caso quindi dovrei essere gucci
+//teoricamente ho il token salvato
 @Injectable() //può essere injectata in altri componenti
 export class SearchService {
 

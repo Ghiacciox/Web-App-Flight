@@ -64,7 +64,7 @@ exports.getTickets = async (req, res) => {
     }
 };
 
-// POST: Crea biglietto (Solo passeggero)
+// POST: Crea biglietto 
 exports.createTicket = async (req, res) => {
     try {  
         if( req.auth.role !== 'passenger'){ 
@@ -85,7 +85,7 @@ exports.createTicket = async (req, res) => {
     }
 };
 
-// DELETE: cancella biglieto (Solo Admin o passeggero proprietario)
+// DELETE: cancella biglieto
 exports.deleteTicket= async (req, res) => {
    let session = null;
     try{

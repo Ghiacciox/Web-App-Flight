@@ -15,7 +15,6 @@ export class AirlineAirplaneService {
 
   private readonly apiUrl = 'http://localhost:3005/api/airplanes';
 
-  // Il costruttore serve SOLO per iniettare le dipendenze (come HttpClient)
   constructor(
     public http: HttpClient,
     private httpServices: HttpService) { }

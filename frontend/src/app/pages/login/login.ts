@@ -43,8 +43,25 @@ export class LoginComponent {
             return;
           }
           console.log('Login successful:', response);
+
+          this.httpService.login(email, password, true).subscribe({
+            next: (response) => {
+              if(response.error) {
+                alert('Login fallito: ' + response.errormessage);
+                return;
+              }
+              console.log('Login successful:', response);
+              //this.router.navigate(['/home']);
+              window.location.href = '/home';
+            },
+            error: (error) => {
+              console.error('Login failed:', error);
+              alert('Login fallito. Controlla le tue credenziali.');
+            }
+          }); 
+      
           //this.router.navigate(['/home']);
-          window.location.href = '/home';
+          //window.location.href = '/home';
         },
         error: (error) => {
           console.error('Login failed:', error);

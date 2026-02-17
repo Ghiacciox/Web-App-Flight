@@ -12,7 +12,7 @@ const seats = new mongoose.Schema({
         default: "" ,
         validate : {
             validator: function(v) { 
-                // se passo una stringa con dei duplicati esplode
+                // se passo una stringa con dei duplicati errore
                 if (!v) return true;
                 return new Set(v).size === v.length;
             },

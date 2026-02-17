@@ -1,5 +1,4 @@
-# Usa l'immagine ufficiale leggera di Node.js
-# cambiata da 19 perché deprecata
+#immagine ufficiale leggera di Node.js
 # 20 è stabile e supportata a lungo termine 
 
 FROM node:20-slim 

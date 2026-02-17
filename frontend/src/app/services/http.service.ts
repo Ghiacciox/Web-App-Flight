@@ -5,7 +5,6 @@ import { Observable, throwError } from 'rxjs';
 import { jwtDecode } from 'jwt-decode';
 
 //dati nascosti dentro il nostro token
-//da capire se sono uguali al nostro
 interface TokenData {
   email: string;
   role: string; //'admin' | 'passenger' | 'airline'
@@ -64,7 +63,7 @@ export class HttpService {
       console.log("No token found in local storage");
       this.token = ""
     }else {
-      // 2. Se c'è un token, controlliamo se è SCADUTO
+      //Se c'è un token, controlliamo se è SCADUTO
       if (this.isTokenExpired(loadedtoken)) {
         console.log("Token scaduto trovato nel localStorage. Logout automatico.");
         this.logout(); // Pulisce tutto
@@ -105,7 +104,6 @@ export class HttpService {
       tap è un operatore di RxJS fondamentale qui. 
       Permette di eseguire delle azioni (side effects)
       senza modificare i dati che verranno passati al componente che ha chiamato il login.
-      Cosa fa dentro il tap?
       Prende il token ricevuto dal server.
       Lo salva nella variabile locale this.token.
       Se remember è true: Salva il token nel localStorage del browser (così rimane anche se chiudi il browser).
@@ -171,7 +169,6 @@ export class HttpService {
   if (!this.token) return null;
   try {
    const decoded = jwtDecode(this.token);
-    //console.log("Contenuto del Token decodificato:", decoded); // <--- AGGIUNGI QUESTO
     return decoded;
   } catch (error) {
     console.error("Token non valido", error);

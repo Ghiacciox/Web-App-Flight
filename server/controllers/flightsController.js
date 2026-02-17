@@ -2,7 +2,8 @@ const Airplanes = require('../models/Airplanes');
 const Booking = require('../models/Booking');
 const Flight = require('../models/Flight');
 const Ticket = require('../models/Ticket');
-const helper = require('./helperController'); // CORRETTO (nota il ./ invece di ../)
+const helper = require('./helperController'); 
+const User = require('../models/Users');
 
 // GET: Lista di tutti gli aerei (Pubblico)
 exports.getFlights = async (req, res) => {
@@ -171,7 +172,7 @@ exports.getAirlineStatistics = async (req, res) => {
             });
         }
 
-        const { dateFrom, dateTo, email} = req.query;
+        const { dateFrom, dateTo, email } = req.query;
 
         let flightFilter = {};
 
@@ -186,12 +187,24 @@ exports.getAirlineStatistics = async (req, res) => {
         }
 
         if (req.auth.role === 'airline') {
-            flightFilter.email = req.auth.email;
-        }else if(req.auth.role === 'admin'){
-           flightFilter.email = req.query.email;
+            flightFilter.company = req.auth.id;
+        } else if (req.auth.role === 'admin') {
+            if (email) {
+                const User = require('../models/Users');
+                const companyUser = await User.findOne({ email: email, role: 'airline' });
+                if (!companyUser) {
+                    return res.status(404).json({ 
+                        error: true, 
+                        errormessage: `Nessuna compagnia trovata con email: ${email}` 
+                    });
+                }
+                flightFilter.company = companyUser._id;
+            }
+            // Se admin non passa email, vede le statistiche aggregate di tutte le compagnie
         }
 
-        const flights = await Flight.find(flightFilter).select('_id flightNumber');
+        
+        const flights = await Flight.find(flightFilter).select('_id flightNumber bookedSeats');
         const flightIds = flights.map(f => f._id);
 
         if (flightIds.length === 0) {
@@ -216,7 +229,6 @@ exports.getAirlineStatistics = async (req, res) => {
                 }
             });
 
-
         let totalPassengers = tickets.length;
         let totalRevenue = 0;
 
@@ -224,66 +236,69 @@ exports.getAirlineStatistics = async (req, res) => {
             totalRevenue += ticket.price;
         }
 
+  
         let singleStats = {};
-        for(let flight of flights){
-            if(!singleStats[flight._id]){
+        for (let flight of flights) {
+            if (!singleStats[flight._id]) {
                 singleStats[flight._id] = {
                     flightNumber: flight.flightNumber,
-                    totalPassengers: 0,
-                    revenue: 0,
-                    numberOfFlight: 0,
+                    totalPassengers: flight.bookedSeats.length, 
+                    totalRevenue: 0,  
+                    numberOfFlights: 0,
                     averageRevenuePerPassenger: 0,
                     averagePassengersPerFlight: 0
-                }
+                };
             }
-            singleStats[flight._id].totalPassengers = flight.bookedSeats.length;
-            for(let ticket of tickets){
-                if(ticket.flight.toString() === flight._id.toString()){
-                    singleStats[flight._id].revenue += ticket.price;
-                    singleStats[flight._id].numberOfFlight = 1;
+            for (let ticket of tickets) {
+                if (ticket.flight._id.toString() === flight._id.toString()) {
+                    singleStats[flight._id].totalRevenue += ticket.price;
+                    singleStats[flight._id].numberOfFlights = 1;
                 }
             }
         }
 
         for (const flight of flights) {
-            if(singleStats[flight._id].totalPassengers > 0){
-                singleStats[flight._id].averageRevenuePerPassenger = singleStats[flight._id].revenue / singleStats[flight._id].totalPassengers;
+            const stat = singleStats[flight._id];
+            if (stat.totalPassengers > 0) {
+                stat.averageRevenuePerPassenger = stat.totalRevenue / stat.totalPassengers;
             }
-            if(singleStats[flight._id].numberOfFlight > 0){
-                singleStats[flight._id].averagePassengersPerFlight = singleStats[flight._id].totalPassengers / singleStats[flight._id].numberOfFlight;
+            if (stat.numberOfFlights > 0) {
+                stat.averagePassengersPerFlight = stat.totalPassengers / stat.numberOfFlights;
             }
         }
 
         let popularRoutes = {};
-        for(let ticket of tickets){
-            const routeId = ticket.route._id.toString();
-            if(!popularRoutes[routeId]){
+        for (let ticket of tickets) {
+            const route = ticket.flight.route; 
+            if (!route) continue;
+
+            const routeId = route._id.toString();
+            if (!popularRoutes[routeId]) {
                 popularRoutes[routeId] = {
-                    departureCity: ticket.route.departureCity,
-                    arrivalCity: ticket.route.arrivalCity,
+                    routeId: routeId,
+                    departureCode: route.departureAirport.code,   
+                    arrivalCode:   route.arrivalAirport.code,
+                    departureCity: route.departureAirport.city,
+                    arrivalCity:   route.arrivalAirport.city,
                     totalPassengers: 0,
-                    revenue: 0
-                }
+                    totalRevenue: 0
+                };
             }
             popularRoutes[routeId].totalPassengers += 1;
-            popularRoutes[routeId].revenue += ticket.price;
+            popularRoutes[routeId].totalRevenue += ticket.price;
         }
 
-        let routeStats = [];
-        for (let routeId in popularRoutes) {
-            routeStats.push(popularRoutes[routeId]);
-        }
-    
-        routeStats.sort(function(a, b) {
-            return b.totalPassengers - a.totalPassengers;
-        });
+        let routeStats = Object.values(popularRoutes);
+        routeStats.sort((a, b) => b.totalPassengers - a.totalPassengers);
+
+        const flightStats = Object.values(singleStats);
         
         return res.status(200).json({
             error: false,
             totalPassengers,
             totalRevenue,
-            routeStats,
-            singleStats
+            flightStats,   
+            routeStats
         });
 
     } catch (err) {

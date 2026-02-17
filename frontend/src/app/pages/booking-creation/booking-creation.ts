@@ -69,6 +69,7 @@ export class BookingCreationComponent implements OnInit, OnDestroy {
       this.websocketService.joinFlight(source.flights[0]._id);
 
       this.firstFlight = source.flights[0];
+      console.log("source",source);
       this.bookedSeatsFirst = this.firstFlight.bookedSeats || [];
       this.seatsEconomyFirst = this.firstFlight.airplane?.capacity?.economy || {} as Seats;
       this.seatsBusinessFirst = this.firstFlight.airplane?.capacity?.business || {} as Seats;
@@ -129,7 +130,6 @@ export class BookingCreationComponent implements OnInit, OnDestroy {
 
     const formConfig: any = {};
 
-    //*--- FORMAZIONE FORM ---*
     //per iol biglietto 1
     if (this.firstFlight) {
       formConfig.firstFlight = this.fb.group({

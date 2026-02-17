@@ -29,7 +29,6 @@ export class RegistrationComponent {
       birthdate: [''],
       phonenumber: [''],
       paymentAddress: [''],
-      // Aggiungi altri campi se necessario
     }); 
   }
 
@@ -98,6 +97,7 @@ utenteeee
         alert('Ruolo non valido selezionato!');
         return;
   }
+
       
   this.httpService.register(userData).subscribe({
         next: (response) => {
@@ -106,8 +106,23 @@ utenteeee
             return;
           }
           console.log('Registrazione successful:',response);
-          //this.router.navigate(['/home']);
-          window.location.href = '/home';
+          
+          this.httpService.login(email, password, true).subscribe({
+            next: (loginResponse) => {
+              if(loginResponse.error) {
+                alert('Login fallito: ' + loginResponse.errormessage);
+                return;
+              }
+              console.log('Login successful:', loginResponse);
+              //this.router.navigate(['/home']);
+              window.location.href = '/home';
+            },
+            error: (error) => {
+              console.error('Login failed:', error);
+              alert('Login fallito. Controlla le tue credenziali.');
+            }
+          });
+        
         },
         error: (error) => {
           console.error('Registrazione failed:', error);

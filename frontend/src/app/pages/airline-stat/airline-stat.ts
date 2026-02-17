@@ -37,9 +37,9 @@ export class AirlineStatComponent implements OnInit{
     ){
 
     this.searchForm = this.fb.group({
-      datefrom : [''],
-      dateTo :[''],
-      email: [''] //solo per admin
+      dateFrom : [''],   
+      dateTo    : [''],
+      email     : ['']   
     });
   }
 
@@ -53,10 +53,17 @@ export class AirlineStatComponent implements OnInit{
 
     const dateF= this.searchForm.value.dateFrom;
     const dateT= this.searchForm.value.dateTo;
-    const email= this.searchForm.value.email;
+    let email = null;
+    if(this.http.is_airline()){
+      email= this.http.get_email();
+      
+    }else{
+      email= this.searchForm.value.email;
+    }
 
     this.statisticsService.getAirlineStatistics(dateF,dateT,email).subscribe({
       next :(resp) =>{
+        console.log("dati da server",resp);
         if(resp.error){
           this.errorMessage = resp.errormessage;
           this.totalPassengers = 0;

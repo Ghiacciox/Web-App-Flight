@@ -5,7 +5,6 @@ const Flight = require('../models/Flight');
 const { findRoutesHelper, flightDeleterHelper } = helper; 
 
 // GET: Cerca rotte
-// Può essere usato così: GET /api/routes?from=FCO&to=JFK
 exports.getRoutes = async (req, res) => {
     try {
          if (req.auth.role !== 'airline' && req.auth.role !== 'admin') {
@@ -28,7 +27,7 @@ exports.getRoutes = async (req, res) => {
     }
 };
 
-// POST: Crea una nuova tratta (Solo Compagnie Aeree)
+// POST: Crea una nuova tratta 
 exports.createRoute = async (req, res) => {
     // 1. Controllo Ruolo
     if (req.auth.role !== 'airline' && req.auth.role !== 'admin') {
@@ -61,11 +60,10 @@ exports.createRoute = async (req, res) => {
         res.status(201).json({ message: "Nuova tratta aerea creata!", route: newRoute });
 
     } catch (err) {
-        // Gestione errore duplicato (definito nel tuo model con index unique)
+        
         if (err.code === 11000) {
             return res.status(400).json({ error: true, errormessage: "Questa tratta esiste già per la tua compagnia" });
         }
-        // Errore validation (es. partenza == arrivo, gestito dal tuo pre('save'))
         res.status(400).json({ error: true, errormessage: err.message });
     }
 };
@@ -84,7 +82,7 @@ exports.deleteRoute = async (req, res) => {
 
         const id = req.params.id;
         const flight = await Flight.find({ route: id }).select('_id'); 
-        // 1. Trova tutti i ticket associati a questo volo
+        //Trova tutti i ticket associati a questo volo
         const flightIds = flight.map(f => f._id);
 
         //tutti i flightDeleterHelper in parallelo

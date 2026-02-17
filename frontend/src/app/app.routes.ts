@@ -18,7 +18,6 @@ import { AirlineStatComponent } from './pages/airline-stat/airline-stat';
 import { PathGuardGuardUser,PathGuardGuardAdmin,PathGuardGuardAirline } from './path-guard-guard';
 
 
-
 //qua ho tutte le rotte posso navigare in base 
 
 export const routes: Routes = [
