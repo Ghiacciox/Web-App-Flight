@@ -3,7 +3,7 @@ const Airport = require('../models/Airports');
 const Flight = require('../models/Flight'); 
 const Ticket = require('../models/Ticket');
 const User = require('../models/Users'); 
-
+const Booking = require('../models/Booking');
 
 
 const resolveAirportId = async (searchString) => {
@@ -162,6 +162,10 @@ const findScaleFlightsHelper = async ( from, to, initialDate , finalDate , compa
         const result_from = await Flight.find(filter)
             .populate('airplane')
             .populate({
+                path: 'company', 
+                select: 'company email role'
+            })
+            .populate({
                 path: 'route',
                 populate: { path: 'departureAirport arrivalAirport' }
                  // Popola anche gli aeroporti dentro la rotta
@@ -197,6 +201,10 @@ const findScaleFlightsHelper = async ( from, to, initialDate , finalDate , compa
             //metto anche data di ritorno
             const scalo = await Flight.find(secondFilter)
                 .populate('airplane')
+                .populate({
+                path: 'company',  // ✅ AGGIUNGI QUESTO
+                select: 'company email role'
+            })
                 .populate({
                     path: 'route',
                     populate: { path: 'departureAirport arrivalAirport' }

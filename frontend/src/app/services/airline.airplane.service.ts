@@ -17,7 +17,7 @@ export class AirlineAirplaneService {
 
   // Il costruttore serve SOLO per iniettare le dipendenze (come HttpClient)
   constructor(
-    private http: HttpClient,
+    public http: HttpClient,
     private httpServices: HttpService) { }
 
 

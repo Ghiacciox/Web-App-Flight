@@ -27,7 +27,7 @@
     <!--fine della navbar -->
 
 
-    <div class="flex-grow flex flex-col lg:flex-row gap-6 bg-sky-400 items-start justify-center p-4 md:p-8">
+    <div class="flex-grow flex flex-col lg:flex-col gap-6 bg-sky-400 items-start justify-center p-4 md:p-8">
 
         <div class="flex-1 flex flex-col gap-8">
 
@@ -105,7 +105,7 @@
             </div>
         </div>
 
-        <div class="w-full lg:w-1/3 flex flex-col gap-6">
+        <div class="flex-grow flex flex-col lg:flex-col gap-6 bg-sky-400 items-start justify-center p-4 md:p-8">
 
             <div class="bg-white shadow-lg rounded-md gap-4 p-6 border-yellow-500 border-l-4 w-full flex flex-col justify-center">
                 <div class="flex flex-row items-center justify-center bg-sky-400 p-2 rounded-md shadow-sm">
@@ -185,6 +185,12 @@
 
                                     </div>
                                     </ng-container>
+                                    <button *ngIf="this.http.is_admin()" type="button" 
+                                        (click)="deleteAirplane(airplane._id)"
+                                        class="bg-red-500 hover:bg-red-600 text-white p-2 rounded-lg transition-colors shadow-sm flex items-center gap-2 text-sm font-bold"
+                                        title="Elimina aereo">
+                                    Elimina
+                                </button>
                                 </div>
                             </div>  
                     </div>

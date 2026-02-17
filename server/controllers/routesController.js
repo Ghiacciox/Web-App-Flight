@@ -1,6 +1,8 @@
 const Route = require('../models/Routes');
 const Airport = require('../models/Airports');
 const helper= require('./helperController');
+const Flight = require('../models/Flight'); 
+const { findRoutesHelper, flightDeleterHelper } = helper; 
 
 // GET: Cerca rotte
 // Può essere usato così: GET /api/routes?from=FCO&to=JFK

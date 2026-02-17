@@ -83,10 +83,13 @@
        <div *ngIf="this.http.is_airline() || this.http.is_admin()" class="w-full">
 
             <div class="flex items-center p-4 gap-4">
-                    <span class="bg-green-300 rounded-md w-fit text-md text-sky-600 font-bold px-2 py-0.5 uppercase">Pannello di controllo compagnia aerea</span>   
-                    <div class="text-sky-600 text-xl font-bold py-1 rounded">
+                    <span *ngIf="this.http.is_airline()" class="bg-green-300 rounded-md w-fit text-md text-sky-600 font-bold px-2 py-0.5 uppercase">Pannello di controllo compagnia aerea</span>   
+                    <span *ngIf="this.http.is_admin()" class="bg-green-300 rounded-md w-fit text-md text-sky-600 font-bold px-2 py-0.5 uppercase">Pannello di controllo amministratore</span>   
+                 
+                    <div *ngIf="this.http.is_airline()" class="text-sky-600 text-xl font-bold py-1 rounded">
                         <span> → {{ this.http.get_company()}}</span>
                     </div>
+                    
                 </div>
 
                 <div class="bg-sky-300 shadow-2xl rounded-md p-4 mb-6"> 
@@ -99,7 +102,7 @@
                 </div>
 
                 <div class="grid grid-cols-5 p-4 gap-4">   
-                    <button type="button" 
+                    <button *ngIf="this.http.is_airline()" type="button" 
                         routerLink="/airline-Routes"
                         class="p-4 rounded-lg border border-gray-200 hover:border-sky-300 transition-all text-left flex justify-between items-center group block text-xs font-bold text-sky-600  uppercase mb-1" >
                         Aggiungi tratta 🗺️
@@ -111,40 +114,38 @@
                         Aggiungi Veicolo ✈️
                     </button>
 
-                    <button type="button" 
+                    <button *ngIf="this.http.is_airline()" type="button" 
                        routerLink="/airline-Flight"
                         class="p-4 rounded-lg border border-gray-200 hover:border-sky-300 transition-all text-left flex justify-between items-center group block text-xs font-bold text-sky-600  uppercase mb-1" >
                         Aggiungi Volo 🛫
                     </button>
 
-                    <button type="button"
+                    <button *ngIf="this.http.is_airline()" type="button"
                         routerLink='/airline-Manage'
                         class="p-4 rounded-lg border border-gray-200 hover:border-sky-300 transition-all text-left flex justify-between items-center group block text-xs font-bold text-sky-600  uppercase mb-1" >
                         Gestisci Biglietti 🎟️
                     </button>
                 
-                    <button type="button"
+                    <button  type="button"
                             routerLink="/airline-stat"
                             class="p-4 rounded-lg border border-gray-200 hover:border-sky-300 transition-all text-left flex justify-between items-center group block text-xs font-bold text-sky-600  uppercase mb-1" >
                             Vedi Statistiche 📊
                     </button>
                     
-                    <div *ngIf="this.http.is_admin()">
-                        <button type="button"
-                                routerLink="/admin-create-airports"
-                                class="p-4 rounded-lg border border-gray-200 hover:border-sky-300 transition-all text-left flex justify-between items-center group block text-xs font-bold text-sky-600  uppercase mb-1">
-                                Gestisci Aeroporti 🛸
-                        </button>
-                    <div>
+                    
+                    <button *ngIf="this.http.is_admin()" type="button"
+                            routerLink="/admin-create-airports"
+                            class="p-4 rounded-lg border border-gray-200 hover:border-sky-300 transition-all text-left flex justify-between items-center group block text-xs font-bold text-sky-600  uppercase mb-1">
+                            Gestisci Aeroporti 🛸
+                    </button>
+                  
 
-                    <div *ngIf="this.http.is_admin()">
-                        <button type="button"
-                                routerLink="/admin-add-user"
-                                class="p-4 rounded-lg border border-gray-200 hover:border-sky-300 transition-all text-left flex justify-between items-center group block text-xs font-bold text-sky-600  uppercase mb-1">
-                                Aggiungi Utente 👤
-                        </button>
-                    <div>
-
+                    <button *ngIf="this.http.is_admin()" type="button"
+                            routerLink="/admin-add-user"
+                            class="p-4 rounded-lg border border-gray-200 hover:border-sky-300 transition-all text-left flex justify-between items-center group block text-xs font-bold text-sky-600  uppercase mb-1">
+                            Aggiungi Utente 👤
+                    </button>
+                
 
                     </div>
                 </div>

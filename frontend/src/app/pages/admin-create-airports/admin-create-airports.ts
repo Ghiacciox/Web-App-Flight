@@ -68,8 +68,9 @@ export class AdminCreateAirportsComponent {
       const airportCountry = this.newAirportForm.value.country;
 
       this.airportService.createAirport(airportCode, airportName, airportCity, airportCountry).subscribe({  
-        next: () => {
-            this.successMessage = "'Aeroporto creato con successo! ";
+        next: (res) => {
+            console.log('Aeroporto creato con successo:', res);
+            this.successMessage = "'Aeroporto creato con successo!";
             this.newAirportForm.reset();
         },
         error: (error) => {

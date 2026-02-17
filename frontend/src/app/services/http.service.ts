@@ -302,6 +302,8 @@ export class HttpService {
   refresh_token(newToken: string): void {
     this.token = newToken;
     localStorage.setItem('postmessages_token', this.token);
-  }   
+  } 
+  
+  
 
 }

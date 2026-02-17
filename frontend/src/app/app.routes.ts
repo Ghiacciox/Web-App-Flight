@@ -29,8 +29,8 @@ export const routes: Routes = [
 
 
     //users (tutti loggati)
-    { path: 'home', component: HomeComponent ,canActivate: [PathGuardGuardUser]},
-    { path: 'results', component: FlightsearchComponent, canActivate: [PathGuardGuardUser] },
+    { path: 'home', component: HomeComponent},
+    { path: 'results', component: FlightsearchComponent},
     { path: 'bookingCreation', component: BookingCreationComponent, canActivate: [PathGuardGuardUser] },
     { path: 'bookingPrenotation', component: BookingPrenotationComponent, canActivate: [PathGuardGuardUser] },
     { path: 'bookingDetail', component: BookingDetailComponent, canActivate: [PathGuardGuardUser] },

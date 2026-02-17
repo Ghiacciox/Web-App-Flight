@@ -63,16 +63,17 @@ export class AirlineRoutesComponent {
       const departureCode = this.RouteForm.value.departureCode.toUpperCase().replace(/\s/g, "");
       const arrivalCode = this.RouteForm.value.arrivalCode.toUpperCase().replace(/\s/g, "")
 
-      this.airlineRouteService.createRoute(departureCode, arrivalCode).subscribe(
-        () => {
+      this.airlineRouteService.createRoute(departureCode, arrivalCode).subscribe({
+        next: (response) => {
             this.successMessageRoute = "'Rotta creata con successo! ";
+            console.log('Rotta creata:', response);
             this.RouteForm.reset();
         },
-        (error) => {
+        error:(error) => {
           console.error('Errore durante la creazione della rotta:', error);
           this.errorMessageRoute = error.error?.errormessage || 'Errore imprevisto del server';
         }
-      );
+      });
     } else {
         this.RouteForm.markAllAsTouched();
         this.errorMessageRoute = "Compila bene i campi!";
@@ -145,5 +146,31 @@ export class AirlineRoutesComponent {
     });
   }
 
+  /*
+  deleteRoute(routeId: string) {
+   const token = this.httpServices.get_token();
+    const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
+    return this.http.delete<ServerResponse>(
+      this.apiUrl + '/'+ routeId, //url con id rotta 
+      {headers: headers} 
+    );
+  }
+  */
+
+   deleteRoute(routeId: string) { //semplicemente mette i voli come non attivi, non li cancella davvero
+    this.airlineRouteService.deleteRoute(routeId).subscribe({
+      next: (response) => {
+          this.successMessageRoute = "Rotta eliminata con successo!";
+          console.log('Risposta dal server:', response);
+          this.routes = this.routes.filter(route => route._id !== routeId); //tolgo la rotta eliminata dalla lista
+          this.cdr.detectChanges();
+      },
+      error: (error) => {
+        console.error('Errore durante l\'eliminazione della rotta:', error);
+        this.errorMessageRoute = error.error?.errormessage || 'Si è verificato un errore durante l\'eliminazione della rotta.';
+        this.cdr.detectChanges();
+      }
+    });
+  }
 
 }

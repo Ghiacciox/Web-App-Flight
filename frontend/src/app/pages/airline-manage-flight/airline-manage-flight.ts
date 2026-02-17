@@ -96,7 +96,7 @@ export class AirlineManageFlightComponent implements OnInit {
       subscribe({
         next: (response) => {
           console.log('Voli trovati:', response);
-          this.flights = response.result;
+          //this.flights = response.result;
           this.populateFormArray(response.result);
         },
         error: (error) =>{
@@ -112,9 +112,12 @@ export class AirlineManageFlightComponent implements OnInit {
     const control = this.flightRows;
     control.clear(); // Pulisce se c'erano vecchi dati
 
+    this.flights = [];
+
     for(let res of flights) {
 
       const f = res.flights[0];
+      this.flights.push(f);
 
 
       console.log('=== FLIGHT DEBUG ===');
@@ -205,6 +208,7 @@ export class AirlineManageFlightComponent implements OnInit {
     this.searchService.updateFlight(daCambiare.id, prices, departureTime, arrivalTime).subscribe({
       next: (res) => {
         this.successMessage = ` aggiornato!`+ res.message;
+        console.log("risultato aggiornamento",res);
         this.flightRows.at(index).markAsPristine(); // Segna come "non modificato"
       },
       error: (err) => {
@@ -220,6 +224,7 @@ deleteRow(index: number) {
     this.searchService.deleteFlight(daCancellare.id).subscribe({
       next: (res) => {
         this.successMessage = `Volo ${daCancellare.flightNumber} eliminato!`;
+        console.log("volo eliminato",res);
         this.flightRows.removeAt(index); // Rimuove la riga dal FormArray
       },
       error: (err) => {

@@ -123,7 +123,7 @@ export class AirlineAirplanesComponent {
     this.airlineAirplaneService.getAirplanes(this.airplaneModelSearch).subscribe({
       next: (response: AirplaneServerResponse) => { 
     
-        console.log('Aereo trovato:', response.message , response.airplanes); 
+        console.log('Aereo trovato:',response); 
 
         // Ora TypeScript sa che 'response.airplanes' esiste ed è un array!
         if (response.airplanes) {
@@ -143,5 +143,23 @@ export class AirlineAirplanesComponent {
     });
   }
 
+  deleteAirplane(id: string | undefined) {
+    if (!id) return;
 
+    this.airlineAirplaneService.deleteAirplane(id).subscribe({
+      next: (response) => {
+        alert('Aereo eliminato con successo!');
+        console.log('Risposta dal server:', response);
+        this.airplanes = this.airplanes.filter(plane => plane._id !== id);
+        this.cdr.detectChanges();
+      },
+      error: (error) => {
+        console.error('Errore cancellazione:', error);
+        alert('Errore: ' + (error.error?.errormessage || 'Impossibile eliminare l\'aereo'));
+      }
+    });
+  }
 }
+
+
+

@@ -18,7 +18,7 @@ exports.getAirports = async (req, res) => {
         if(country){
             filter.country = { $regex: country, $options: 'i' };
         } 
-        const airports = await Airport.find(filter);  
+        const airports = await Airport.find(filter).select('-__v');;  
         return res.status(200).json({ message: "Aeroporti trovati!", airports });
         
     } catch (err) {
@@ -44,7 +44,7 @@ exports.createAirport = async (req, res) => {
         });  
 
         await newAirport.save();
-        return res.status(200).json({ message: "Nuovo aeroporto creato!"});
+        return res.status(200).json({ message: "Nuovo aeroporto creato!", airport: newAirport });
     
     } catch (err) {
         if (err.code === 11000) {

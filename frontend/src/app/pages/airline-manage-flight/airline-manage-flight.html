@@ -102,7 +102,6 @@
         <form [formGroup]="parentForm">
             <div formArrayName="flightRows">
                 <div *ngFor="let row of flightRows.controls; let i = index" [formGroupName]="i" class="w-full max-w-7xl mx-auto mb-6">
-                    
                     <div class="bg-white shadow-lg border border-solid border-yellow-500 border-l-4 rounded-md p-4">
                         
                         <!-- Flight Header -->
@@ -116,22 +115,26 @@
                         </div>
 
                         <!-- Flight Basic Info -->
-                        <div class="bg-sky-300 shadow-2xl rounded-md p-4 mb-6"> 
-                            <div class="grid grid-cols-3 p-4 gap-4">
-                                <div>
-                                    <label class="block text-xs font-bold text-sky-700 uppercase mb-1">Compagnia aerea</label>
-                                    <div class="text-lg font-bold text-black leading-none">{{ flights[i]?.company?.company || 'Airline' }}</div>
+                     <div class="bg-sky-300 shadow-2xl rounded-md p-4 mb-6"> 
+                        <div class="grid grid-cols-3 p-4 gap-4">
+                            <div>
+                                <label class="block text-xs font-bold text-sky-700 uppercase mb-1">Compagnia aerea</label>
+                                <div class="text-lg font-bold text-black leading-none">
+                                    {{ flights[i]?.company?.company || 'Airline' }}
                                 </div>
-                                <div>
-                                    <label class="block text-xs font-bold text-sky-700 uppercase mb-1">Numero di volo</label>
-                                    <div class="text-lg font-bold text-black leading-none">{{ row.value.flightNumber }}</div>
-                                </div>
-                                <div>
-                                    <label class="block text-xs font-bold text-sky-700 uppercase mb-1">Modello aereo</label>
-                                    <div class="text-lg font-bold text-black leading-none">{{ flights[i]?.airplane?.airplaneModel || 'N/A' }}</div>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-sky-700 uppercase mb-1">Numero di volo</label>
+                                <div class="text-lg font-bold text-black leading-none">{{ row.value.flightNumber }}</div>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-sky-700 uppercase mb-1">Modello aereo</label>
+                                <div class="text-lg font-bold text-black leading-none">
+                                    {{ flights[i]?.airplane?.airplaneModel || 'N/A' }}
                                 </div>
                             </div>
                         </div>
+                    </div>
 
                         <!-- Date and Time Editing -->
                         <div class="bg-gray-50 rounded-md p-4 mb-6">

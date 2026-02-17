@@ -142,10 +142,12 @@ export class AirlineFlightComponent {
             this.successMessage = "Volo creato con successo!";
             console.log('Risposta dal server:', response);
             this.FlightForm.reset();
+            this.cdr.detectChanges();
         },
         error: (error) => {
           console.error('Errore server:', error);
           this.errorMessage = error.error?.errormessage || 'Errore imprevisto del server';
+          this.cdr.detectChanges();
         }
       });
     } else {

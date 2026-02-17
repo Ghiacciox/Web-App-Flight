@@ -23,7 +23,7 @@ exports.createAirplane = async (req, res) => {
     console.log(" 1.sono nella funzione di creazione aereo");
     try {
         if (req.auth.role !== 'admin' && req.auth.role !== 'airline') {
-            return res.status(400).json({ error: true, errormessage: "Non sei un admin non puoi creare un aeroporto" });
+            return res.status(400).json({ error: true, errormessage: "Non autorizzato a creare un aereo" });
         }
         console.log(" 2.permessi ok");
         const {airplaneModel, capacity} = req.body;
@@ -37,11 +37,11 @@ exports.createAirplane = async (req, res) => {
         console.log(newAirplane);
         await newAirplane.save();
         console.log(" 5.aereo salvato nel db");
-        return res.status(200).json({ message: "Nuovo aereo creato!"});
+        return res.status(200).json({ message: "Nuovo aereo creato!", airplane: newAirplane });
     } catch (err) {
         // Gestione errore duplicati (code deve essere univoco)
         if (err.code === 11000) {
-            return res.status(400).json({ error: true, errormessage: "Codice aeroporto già esistente" });
+            return res.status(400).json({ error: true, errormessage: "Codice aereo già esistente" });
         }
 
         return res.status(500).json({ 

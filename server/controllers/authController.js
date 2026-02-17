@@ -2,6 +2,7 @@ const User = require('../models/Users');
 const Booking = require('../models/Booking');
 const Ticket = require('../models/Ticket');
 const Flights = require('../models/Flight');
+const Route = require('../models/Routes')
 const { flightDeleterHelper } = require('./helperController');
 const jsonwebtoken = require('jsonwebtoken');
 const { deleteTicketHelper } = require('./helperController');
@@ -187,8 +188,8 @@ exports.deleteAccount = async (req, res) => {
                 console.error("Alcuni biglietti non cancellati:", errors);
             }
         }
-            
-        const deletedUser = await User.findByIdAndDelete(id);
+        
+        const deletedUser = await User.findByIdAndDelete(id).select('-digest -salt -__v'); // Escludo;
         return res.status(200).json({ error: false, errormessage: "" , message: "account cancellato con successo", user: deletedUser });
     } catch (err) {
         console.error("Error deleting account:", err);

@@ -7,6 +7,7 @@ const routeSchema = new mongoose.Schema({
         ref: 'User', 
         required: true 
     },
+    
    
     departureAirport : {
         type: mongoose.Schema.Types.ObjectId, 

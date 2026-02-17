@@ -6,7 +6,7 @@ services:
     ports:
       - "27017:27017"
     volumes:
-      - database:/data/db # Sdove salvo i dati del DB
+      - ./database:/data/db # Sdove salvo i dati del DB
     networks:
       - flights-network
 
@@ -42,8 +42,6 @@ services:
       networks:
         - flights-network
 
-volumes:
-  database :
 
 networks:
   flights-network:

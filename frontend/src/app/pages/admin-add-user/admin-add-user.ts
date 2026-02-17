@@ -145,6 +145,7 @@ export class AdminAddUserComponent {
           this.errormessageUser = response.errormessage || 'Errore imprevisto del server';
         } else {
           this.successmessageUser = 'Utente eliminato con successo!';
+          this.userlist = this.userlist.filter(user => user._id !== id); //tolgo dall'array l'utente eliminato
           console.log('Utente eliminato con successo:', response);
         }
         this.cdr.detectChanges();

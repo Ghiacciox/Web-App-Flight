@@ -85,6 +85,7 @@ exports.updateFlight = async (req, res) => {
         }
 
         const flightId = req.params.id;
+        console.log("req_body:", req.body);
         const { prices, departureTime, arrivalTime } = req.body;
 
         if (!prices && !departureTime && !arrivalTime) {
